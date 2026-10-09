@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <TextView style="@style/FieldLabel" android:text="Date" />
+    <TextView
+        android:id="@+id/tv_dialog_date"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@drawable/input_bg"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="12dp"
+        android:textColor="@color/text_primary" />
+
+    <TextView style="@style/FieldLabel" android:layout_marginTop="12dp" android:text="Hours" />
+    <EditText
+        android:id="@+id/et_dialog_hours"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@drawable/input_bg"
+        android:inputType="numberDecimal"
+        android:paddingHorizontal="12dp" />
+
+    <TextView style="@style/FieldLabel" android:layout_marginTop="12dp" android:text="Description" />
+    <EditText
+        android:id="@+id/et_dialog_desc"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@drawable/input_bg"
+        android:inputType="text"
+        android:paddingHorizontal="12dp" />
+</LinearLayout>

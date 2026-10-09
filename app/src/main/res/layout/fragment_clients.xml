@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Clients" android:textSize="22sp" android:textStyle="bold" android:textColor="@color/text_primary" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="14dp"
+            android:text="Who you bill, and where their invoice goes." android:textSize="13sp" android:textColor="@color/text_muted" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="14dp"
+            android:background="@drawable/card_bg"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView android:id="@+id/tv_form_title" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp" android:text="Add a client" android:textStyle="bold" android:textSize="15sp" android:textColor="@color/text_primary" />
+
+            <TextView style="@style/FieldLabel" android:text="Client / company name" />
+            <EditText android:id="@+id/et_name" android:layout_width="match_parent" android:layout_height="48dp"
+                android:background="@drawable/input_bg" android:hint="Acme Studio" android:inputType="text" android:paddingHorizontal="12dp" />
+
+            <TextView style="@style/FieldLabel" android:layout_marginTop="10dp" android:text="Email (optional)" />
+            <EditText android:id="@+id/et_email" android:layout_width="match_parent" android:layout_height="48dp"
+                android:background="@drawable/input_bg" android:hint="billing@acme.com" android:inputType="textEmailAddress" android:paddingHorizontal="12dp" />
+
+            <TextView style="@style/FieldLabel" android:layout_marginTop="10dp" android:text="Billing address (optional)" />
+            <EditText android:id="@+id/et_address" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:minHeight="64dp" android:gravity="top" android:background="@drawable/input_bg" android:hint="123 Main St, Halifax, NS"
+                android:inputType="textMultiLine" android:padding="12dp" />
+
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="14dp" android:orientation="horizontal">
+                <Button android:id="@+id/btn_save" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:backgroundTint="@color/accent" android:text="Add Client" android:textAllCaps="false" android:textColor="@color/on_accent" />
+                <Button android:id="@+id/btn_cancel" style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="4dp"
+                    android:text="Cancel" android:textAllCaps="false" android:visibility="gone" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/card_bg"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="10dp"
+                android:text="Your clients" android:textStyle="bold" android:textSize="15sp" android:textColor="@color/text_primary" />
+
+            <TextView android:id="@+id/tv_empty" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:gravity="center" android:padding="20dp" android:text="No clients yet — add your first one above."
+                android:textColor="@color/text_faint" android:textSize="13sp" android:visibility="gone" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_clients"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

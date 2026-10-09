@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Track Time"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="14dp"
+            android:text="Start a timer, or log hours by hand."
+            android:textSize="13sp"
+            android:textColor="@color/text_muted" />
+
+        <TextView
+            android:id="@+id/tv_setup_banner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="14dp"
+            android:background="@drawable/card_bg"
+            android:backgroundTint="@color/accent_soft"
+            android:padding="12dp"
+            android:text="Add your hourly rate and business details in Settings before generating an invoice."
+            android:textColor="@color/text_primary"
+            android:textSize="13sp"
+            android:visibility="gone" />
+
+        <!-- Timer card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="14dp"
+            android:background="@drawable/card_bg"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:id="@+id/layout_timer_idle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView style="@style/FieldLabel" android:text="Client" />
+                <Spinner
+                    android:id="@+id/spinner_timer_client"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp" />
+
+                <TextView style="@style/FieldLabel" android:layout_marginTop="12dp" android:text="What are you working on? (optional)" />
+                <EditText
+                    android:id="@+id/et_timer_note"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:background="@drawable/input_bg"
+                    android:hint="e.g. Homepage redesign"
+                    android:inputType="text"
+                    android:paddingHorizontal="12dp" />
+
+                <Button
+                    android:id="@+id/btn_start_timer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:backgroundTint="@color/accent"
+                    android:text="▶  Start Timer"
+                    android:textAllCaps="false"
+                    android:textColor="@color/on_accent" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/layout_timer_active"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/tv_timer_display"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="monospace"
+                    android:text="00:00:00"
+                    android:textColor="@color/text_primary"
+                    android:textSize="38sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_timer_meta"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:textColor="@color/text_muted"
+                    android:textSize="13sp" />
+
+                <TextView style="@style/FieldLabel" android:text="Description" />
+                <EditText
+                    android:id="@+id/et_active_note"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:background="@drawable/input_bg"
+                    android:hint="What are you working on?"
+                    android:inputType="text"
+                    android:paddingHorizontal="12dp" />
+
+                <LinearLayout
+                    android:id="@+id/timer_controls"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:orientation="horizontal" />
+
+                <Button
+                    android:id="@+id/btn_discard_timer"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Discard this session"
+                    android:textAllCaps="false"
+                    android:textColor="@color/text_faint"
+                    android:textSize="12.5sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Log expense card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="14dp"
+            android:background="@drawable/card_bg"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Log an expense" android:textStyle="bold" android:textSize="15sp" android:textColor="@color/text_primary" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="10dp"
+                android:text="One-off billable costs — a subscription, materials, mileage." android:textSize="12sp" android:textColor="@color/text_muted" />
+
+            <TextView style="@style/FieldLabel" android:text="Client" />
+            <Spinner android:id="@+id/spinner_expense_client" android:layout_width="match_parent" android:layout_height="48dp" />
+
+            <TextView style="@style/FieldLabel" android:layout_marginTop="10dp" android:text="Date" />
+            <EditText android:id="@+id/et_expense_date" android:layout_width="match_parent" android:layout_height="48dp"
+                android:background="@drawable/input_bg" android:focusable="false" android:paddingHorizontal="12dp" />
+
+            <TextView style="@style/FieldLabel" android:layout_marginTop="10dp" android:text="Title" />
+            <EditText android:id="@+id/et_expense_title" android:layout_width="match_parent" android:layout_height="48dp"
+                android:background="@drawable/input_bg" android:hint="e.g. Figma subscription" android:inputType="text" android:paddingHorizontal="12dp" />
+
+            <TextView style="@style/FieldLabel" android:layout_marginTop="10dp" android:text="Amount" />
+            <EditText android:id="@+id/et_expense_amount" android:layout_width="match_parent" android:layout_height="48dp"
+                android:background="@drawable/input_bg" android:hint="12.00" android:inputType="numberDecimal" android:paddingHorizontal="12dp" />
+
+            <TextView style="@style/FieldLabel" android:layout_marginTop="10dp" android:text="Receipt (optional, JPEG or PNG)" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal">
+                <Button android:id="@+id/btn_attach_receipt" style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content" android:layout_height="40dp" android:minWidth="0dp"
+                    android:text="Attach" android:textAllCaps="false" android:textSize="12.5sp" />
+                <TextView android:id="@+id/tv_receipt_name" android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:layout_marginStart="10dp" android:ellipsize="middle" android:maxLines="1"
+                    android:text="No receipt attached" android:textColor="@color/text_faint" android:textSize="12.5sp" />
+                <ImageButton android:id="@+id/btn_remove_receipt" android:layout_width="32dp" android:layout_height="32dp"
+                    android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="Remove receipt"
+                    android:padding="6dp" android:src="@drawable/ic_delete" android:visibility="gone" app:tint="@color/text_faint" />
+            </LinearLayout>
+
+            <Button android:id="@+id/btn_add_expense" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="14dp" android:backgroundTint="@color/accent" android:text="Add Expense"
+                android:textAllCaps="false" android:textColor="@color/on_accent" />
+        </LinearLayout>
+
+        <!-- Recent expenses -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="14dp"
+            android:background="@drawable/card_bg"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Recent expenses" android:textStyle="bold" android:textSize="15sp" android:textColor="@color/text_primary" />
+
+            <TextView android:id="@+id/tv_expenses_empty" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="14dp" android:gravity="center" android:text="No expenses logged yet."
+                android:textColor="@color/text_faint" android:textSize="13sp" android:visibility="gone" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_expenses"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:nestedScrollingEnabled="false" />
+        </LinearLayout>
+
+        <!-- Log time by hand -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="14dp"
+            android:background="@drawable/card_bg"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Log time by hand" android:textStyle="bold" android:textSize="15sp" android:textColor="@color/text_primary" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="10dp"
+                android:text="Add a past session you forgot to time." android:textSize="12sp" android:textColor="@color/text_muted" />
+
+            <TextView style="@style/FieldLabel" android:text="Client" />
+            <Spinner android:id="@+id/spinner_manual_client" android:layout_width="match_parent" android:layout_height="48dp" />
+
+            <TextView style="@style/FieldLabel" android:layout_marginTop="10dp" android:text="Date" />
+            <EditText android:id="@+id/et_manual_date" android:layout_width="match_parent" android:layout_height="48dp"
+                android:background="@drawable/input_bg" android:focusable="false" android:paddingHorizontal="12dp" />
+
+            <TextView style="@style/FieldLabel" android:layout_marginTop="10dp" android:text="Hours" />
+            <EditText android:id="@+id/et_manual_hours" android:layout_width="match_parent" android:layout_height="48dp"
+                android:background="@drawable/input_bg" android:hint="1.5" android:inputType="numberDecimal" android:paddingHorizontal="12dp" />
+
+            <TextView style="@style/FieldLabel" android:layout_marginTop="10dp" android:text="Description (optional)" />
+            <EditText android:id="@+id/et_manual_desc" android:layout_width="match_parent" android:layout_height="48dp"
+                android:background="@drawable/input_bg" android:hint="e.g. Bug fixes" android:inputType="text" android:paddingHorizontal="12dp" />
+
+            <Button android:id="@+id/btn_add_entry" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="14dp" android:backgroundTint="@color/accent" android:text="Add Entry"
+                android:textAllCaps="false" android:textColor="@color/on_accent" />
+        </LinearLayout>
+
+        <!-- Recent entries -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/card_bg"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Recent entries" android:textStyle="bold" android:textSize="15sp" android:textColor="@color/text_primary" />
+
+            <TextView android:id="@+id/tv_entries_empty" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="14dp" android:gravity="center" android:text="No time logged yet."
+                android:textColor="@color/text_faint" android:textSize="13sp" android:visibility="gone" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_entries"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:nestedScrollingEnabled="false" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

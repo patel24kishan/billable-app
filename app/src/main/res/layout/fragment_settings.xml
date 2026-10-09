@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Settings" android:textSize="22sp" android:textStyle="bold" android:textColor="@color/text_primary" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="14dp"
+            android:text="Your rate and the details that appear on every invoice." android:textSize="13sp" android:textColor="@color/text_muted" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="14dp"
+            android:background="@drawable/card_bg"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="10dp"
+                android:text="Billing" android:textStyle="bold" android:textSize="15sp" android:textColor="@color/text_primary" />
+
+            <TextView style="@style/FieldLabel" android:text="Hourly rate" />
+            <EditText android:id="@+id/et_rate" android:layout_width="match_parent" android:layout_height="48dp"
+                android:background="@drawable/input_bg" android:hint="65.00" android:inputType="numberDecimal" android:paddingHorizontal="12dp" />
+
+            <TextView style="@style/FieldLabel" android:layout_marginTop="10dp" android:text="Currency symbol" />
+            <EditText android:id="@+id/et_currency" android:layout_width="match_parent" android:layout_height="48dp"
+                android:background="@drawable/input_bg" android:hint="$" android:inputType="text" android:maxLength="3" android:paddingHorizontal="12dp" />
+
+            <TextView style="@style/FieldLabel" android:layout_marginTop="10dp" android:text="Next invoice number" />
+            <EditText android:id="@+id/et_next_invoice" android:layout_width="match_parent" android:layout_height="48dp"
+                android:background="@drawable/input_bg" android:inputType="number" android:paddingHorizontal="12dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="14dp"
+            android:background="@drawable/card_bg"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="4dp"
+                android:text="Sales tax" android:textStyle="bold" android:textSize="15sp" android:textColor="@color/text_primary" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="10dp"
+                android:text="Canada auto-fills the correct rate(s) by province. Elsewhere, enter your own rate(s) — leave blank for no tax."
+                android:textSize="12sp" android:textColor="@color/text_muted" />
+
+            <TextView style="@style/FieldLabel" android:text="Country" />
+            <Spinner android:id="@+id/spinner_tax_country" android:layout_width="match_parent" android:layout_height="48dp" />
+
+            <TextView android:id="@+id/label_tax_province" style="@style/FieldLabel" android:layout_marginTop="10dp" android:text="Province / territory" android:visibility="gone" />
+            <Spinner android:id="@+id/spinner_tax_province" android:layout_width="match_parent" android:layout_height="48dp" android:visibility="gone" />
+
+            <LinearLayout android:id="@+id/layout_tax_custom" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:orientation="horizontal">
+                    <EditText android:id="@+id/et_tax_label_1" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="2"
+                        android:background="@drawable/input_bg" android:hint="Tax name (e.g. Sales Tax)" android:inputType="text" android:paddingHorizontal="12dp" />
+                    <EditText android:id="@+id/et_tax_rate_1" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1" android:layout_marginStart="8dp"
+                        android:background="@drawable/input_bg" android:hint="%" android:inputType="numberDecimal" android:paddingHorizontal="12dp" />
+                </LinearLayout>
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:orientation="horizontal">
+                    <EditText android:id="@+id/et_tax_label_2" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="2"
+                        android:background="@drawable/input_bg" android:hint="Second tax (optional)" android:inputType="text" android:paddingHorizontal="12dp" />
+                    <EditText android:id="@+id/et_tax_rate_2" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1" android:layout_marginStart="8dp"
+                        android:background="@drawable/input_bg" android:hint="%" android:inputType="numberDecimal" android:paddingHorizontal="12dp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <TextView android:id="@+id/tv_tax_preview" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="10dp" android:textSize="12.5sp" android:textStyle="italic" android:textColor="@color/text_faint" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/card_bg"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Your business details" android:textStyle="bold" android:textSize="15sp" android:textColor="@color/text_primary" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="10dp"
+                android:text="Shown as the &quot;from&quot; on every invoice PDF." android:textSize="12sp" android:textColor="@color/text_muted" />
+
+            <TextView style="@style/FieldLabel" android:text="Name / business name" />
+            <EditText android:id="@+id/et_biz_name" android:layout_width="match_parent" android:layout_height="48dp"
+                android:background="@drawable/input_bg" android:hint="Jordan Lee — Freelance Design" android:inputType="text" android:paddingHorizontal="12dp" />
+
+            <TextView style="@style/FieldLabel" android:layout_marginTop="10dp" android:text="Email" />
+            <EditText android:id="@+id/et_biz_email" android:layout_width="match_parent" android:layout_height="48dp"
+                android:background="@drawable/input_bg" android:hint="you@example.com" android:inputType="textEmailAddress" android:paddingHorizontal="12dp" />
+
+            <TextView style="@style/FieldLabel" android:layout_marginTop="10dp" android:text="Address (optional)" />
+            <EditText android:id="@+id/et_biz_address" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:minHeight="48dp" android:background="@drawable/input_bg" android:hint="City, Province" android:inputType="textMultiLine" android:padding="12dp" />
+
+            <TextView style="@style/FieldLabel" android:layout_marginTop="10dp" android:text="Payment instructions / notes" />
+            <EditText android:id="@+id/et_notes" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:minHeight="64dp" android:gravity="top" android:background="@drawable/input_bg"
+                android:hint="e.g. Payment due within 15 days. E-transfer to you@example.com" android:inputType="textMultiLine" android:padding="12dp" />
+
+            <Button android:id="@+id/btn_save" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="14dp" android:backgroundTint="@color/accent" android:text="Save Settings"
+                android:textAllCaps="false" android:textColor="@color/on_accent" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>
