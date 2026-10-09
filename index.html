@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Billable</title>
+<meta name="description" content="Track billable hours per client, log expenses with receipts, and generate PDF invoices with itemized sales tax — all stored locally in your browser.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+</head>
+<body>
+
+<div class="app">
+  <aside class="rail">
+    <div class="brand"><span class="brand-mark">🧾</span><span class="brand-name">Billable</span></div>
+    <nav class="nav" id="nav">
+      <button class="nav-item active" data-view="track">Track Time</button>
+      <button class="nav-item" data-view="clients">Clients</button>
+      <button class="nav-item" data-view="invoices">Invoices</button>
+      <button class="nav-item" data-view="settings">Settings</button>
+    </nav>
+    <div class="rail-timer" id="railTimer" hidden>
+      <div class="rail-timer-dot"></div>
+      <div>
+        <div class="rail-timer-label">Running</div>
+        <div class="rail-timer-elapsed" id="railElapsed">00:00:00</div>
+      </div>
+    </div>
+    <div class="rail-footer">Time tracking &amp; invoicing for your freelance work.</div>
+  </aside>
+
+  <main class="main">
+    <!-- TRACK -->
+    <section id="view-track" class="view active">
+      <div class="view-head">
+        <div><h1>Track Time</h1><div class="view-sub">Start a timer, or log hours by hand.</div></div>
+      </div>
+      <div id="setupBanner" class="banner" hidden>
+        Add your hourly rate and business details before you generate an invoice.
+        <button class="link" onclick="goToView('settings')">Open Settings →</button>
+      </div>
+
+      <div class="card">
+        <div id="timerIdle">
+          <div class="grid-2">
+            <div class="field">
+              <label for="timerClient">Client</label>
+              <select id="timerClient"></select>
+            </div>
+            <div class="field">
+              <label for="timerNote">What are you working on? (optional)</label>
+              <input type="text" id="timerNote" placeholder="e.g. Homepage redesign">
+            </div>
+          </div>
+          <button class="btn btn-primary" id="startTimerBtn">▶ Start Timer</button>
+        </div>
+        <div id="timerActive" hidden>
+          <div class="timer-hero">
+            <div>
+              <div class="timer-display num" id="timerDisplay">00:00:00</div>
+              <div class="timer-meta" id="timerMeta">Working for —</div>
+              <div class="field" style="margin-top:12px;max-width:360px;">
+                <label for="timerActiveNote">Description</label>
+                <input type="text" id="timerActiveNote" placeholder="What are you working on?">
+              </div>
+            </div>
+            <div class="row-actions" id="timerControls"></div>
+          </div>
+          <div class="row-actions" style="margin-top:10px;">
+            <button class="muted-link" id="discardTimerBtn" type="button">Discard this session</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Log an expense</div>
+        <div class="card-sub">One-off billable costs — a subscription, materials, mileage — added to the client's next invoice.</div>
+        <form id="expenseForm">
+          <div class="grid-2">
+            <div class="field"><label for="expClient">Client</label><select id="expClient" required></select></div>
+            <div class="field"><label for="expDate">Date</label><input type="date" id="expDate" required></div>
+          </div>
+          <div class="grid-2">
+            <div class="field"><label for="expTitle">Title</label><input type="text" id="expTitle" placeholder="e.g. Figma subscription" required></div>
+            <div class="field"><label for="expAmount">Amount</label><input type="number" id="expAmount" step="0.01" min="0.01" placeholder="12.00" required></div>
+          </div>
+          <div class="field">
+            <label for="expReceipt">Receipt (optional, JPEG or PNG)</label>
+            <input type="file" id="expReceipt" accept="image/jpeg,image/png">
+          </div>
+          <button class="btn btn-primary" type="submit" id="expSubmitBtn">Add Expense</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Recent expenses</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Date</th><th>Client</th><th>Title</th><th>Amount</th><th></th></tr></thead>
+          <tbody id="expensesBody"></tbody>
+        </table></div>
+        <div id="expensesEmpty" class="empty" hidden>No expenses logged yet.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Log time by hand</div>
+        <div class="card-sub">Add a past session you forgot to time.</div>
+        <form id="manualForm">
+          <div class="grid-2">
+            <div class="field"><label for="manClient">Client</label><select id="manClient" required></select></div>
+            <div class="field"><label for="manDate">Date</label><input type="date" id="manDate" required></div>
+          </div>
+          <div class="grid-2">
+            <div class="field"><label for="manHours">Hours</label><input type="number" id="manHours" step="0.05" min="0.05" placeholder="1.5" required></div>
+            <div class="field"><label for="manDesc">Description (optional)</label><input type="text" id="manDesc" placeholder="e.g. Bug fixes"></div>
+          </div>
+          <button class="btn btn-primary" type="submit">Add Entry</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Recent entries</div>
+        <div class="table-wrap"><table id="entriesTable">
+          <thead><tr><th>Date</th><th>Client</th><th>Description</th><th>Hours</th><th></th></tr></thead>
+          <tbody id="entriesBody"></tbody>
+        </table></div>
+        <div id="entriesEmpty" class="empty" hidden>No time logged yet — start a timer above or add an entry by hand.</div>
+      </div>
+    </section>
+
+    <!-- CLIENTS -->
+    <section id="view-clients" class="view">
+      <div class="view-head"><div><h1>Clients</h1><div class="view-sub">Who you bill, and where their invoice goes.</div></div></div>
+      <div class="card">
+        <div class="card-title" id="clientFormTitle">Add a client</div>
+        <form id="clientForm">
+          <input type="hidden" id="clientId">
+          <div class="grid-2">
+            <div class="field"><label for="clientName">Client / company name</label><input type="text" id="clientName" required placeholder="Acme Studio"></div>
+            <div class="field"><label for="clientEmail">Email (optional)</label><input type="email" id="clientEmail" placeholder="billing@acme.com"></div>
+          </div>
+          <div class="field"><label for="clientAddress">Billing address (optional)</label><textarea id="clientAddress" placeholder="123 Main St&#10;Halifax, NS"></textarea></div>
+          <div class="row-actions">
+            <button class="btn btn-primary" type="submit" id="clientSaveBtn">Add Client</button>
+            <button class="btn btn-ghost" type="button" id="clientCancelBtn" hidden>Cancel</button>
+          </div>
+        </form>
+      </div>
+      <div class="card">
+        <div class="card-title">Your clients</div>
+        <div class="client-list" id="clientList"></div>
+        <div id="clientsEmpty" class="empty" hidden>No clients yet — add your first one above.</div>
+      </div>
+    </section>
+
+    <!-- INVOICES -->
+    <section id="view-invoices" class="view">
+      <div class="view-head"><div><h1>Invoices</h1><div class="view-sub">Turn a month of tracked time into a PDF.</div></div></div>
+
+      <div class="card">
+        <div class="card-title">Generate an invoice</div>
+        <div class="grid-2">
+          <div class="field"><label for="invClient">Client</label><select id="invClient"></select></div>
+          <div class="field"><label for="invMonth">Billing month</label><input type="month" id="invMonth"></div>
+        </div>
+        <label class="field" style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+          <input type="checkbox" id="invIncludeBilled" style="width:18px;height:18px;min-height:18px;flex:none;">
+          <span style="font-weight:500;color:var(--text);">Include entries already on a previous invoice</span>
+        </label>
+        <button class="btn btn-ghost" id="invPreviewBtn" type="button">Preview</button>
+
+        <div id="invPreviewWrap" hidden style="margin-top:18px;">
+          <div class="table-wrap"><table>
+            <thead><tr><th>Date</th><th>Description</th><th>Hours</th><th>Amount</th></tr></thead>
+            <tbody id="invPreviewBody"></tbody>
+            <tfoot id="invTotalsFoot"></tfoot>
+          </table></div>
+          <div id="invPreviewEmpty" class="empty" hidden>No un-invoiced time for this client in this month.</div>
+          <div class="view-sub" id="invTaxJurisdiction" style="margin-top:6px;" hidden></div>
+          <div class="row-actions" style="margin-top:16px;">
+            <button class="btn btn-primary" id="invGenerateBtn">Generate PDF Invoice</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Invoice history</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>#</th><th>Client</th><th>Period</th><th>Hours</th><th>Total</th><th></th></tr></thead>
+          <tbody id="invoicesBody"></tbody>
+        </table></div>
+        <div id="invoicesEmpty" class="empty" hidden>Invoices you generate will show up here.</div>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section id="view-settings" class="view">
+      <div class="view-head"><div><h1>Settings</h1><div class="view-sub">Your rate and the details that appear on every invoice.</div></div></div>
+      <div class="card">
+        <div class="card-title">Billing</div>
+        <div class="grid-2">
+          <div class="field"><label for="setRate">Hourly rate</label><input type="number" id="setRate" min="0" step="0.01" placeholder="65.00"></div>
+          <div class="field"><label for="setCurrency">Currency symbol</label><input type="text" id="setCurrency" placeholder="$" maxlength="3"></div>
+        </div>
+        <div class="field"><label for="setNextInv">Next invoice number</label><input type="number" id="setNextInv" min="1" step="1"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Sales tax</div>
+        <div class="card-sub">Canada auto-fills the correct rate(s) by province. Elsewhere, enter your own rate(s) — leave blank for no tax.</div>
+        <div class="field">
+          <label for="taxCountry">Country</label>
+          <select id="taxCountry">
+            <option value="">No tax / not set</option>
+            <option value="Canada">Canada</option>
+            <option value="United States">United States</option>
+            <option value="Other / custom">Other / custom</option>
+          </select>
+        </div>
+        <div class="field" id="taxProvinceField" hidden>
+          <label for="taxProvince">Province / territory</label>
+          <select id="taxProvince"></select>
+        </div>
+        <div id="taxCustomFields" hidden>
+          <div class="grid-2">
+            <div class="field"><label for="taxLabel1">Tax name</label><input type="text" id="taxLabel1" placeholder="Sales Tax"></div>
+            <div class="field"><label for="taxRate1">Rate %</label><input type="number" id="taxRate1" step="0.001" min="0" placeholder="0"></div>
+          </div>
+          <div class="grid-2">
+            <div class="field"><label for="taxLabel2">Second tax (optional)</label><input type="text" id="taxLabel2" placeholder=""></div>
+            <div class="field"><label for="taxRate2">Rate %</label><input type="number" id="taxRate2" step="0.001" min="0" placeholder="0"></div>
+          </div>
+        </div>
+        <div class="view-sub" id="taxPreview" style="margin-top:2px;"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Your business details</div>
+        <div class="card-sub">Shown as the "from" on every invoice PDF.</div>
+        <div class="field"><label for="setBizName">Name / business name</label><input type="text" id="setBizName" placeholder="Jordan Lee — Freelance Design"></div>
+        <div class="grid-2">
+          <div class="field"><label for="setBizEmail">Email</label><input type="email" id="setBizEmail" placeholder="you@example.com"></div>
+          <div class="field"><label for="setBizAddress">Address (optional)</label><input type="text" id="setBizAddress" placeholder="City, Province"></div>
+        </div>
+        <div class="field"><label for="setNotes">Payment instructions / notes</label><textarea id="setNotes" placeholder="e.g. Payment due within 15 days. E-transfer to you@example.com"></textarea></div>
+        <button class="btn btn-primary" id="saveSettingsBtn">Save Settings</button>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+<div id="confirmModal" class="modal-overlay" hidden>
+  <div class="modal">
+    <p id="confirmText"></p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="confirmCancelBtn">Cancel</button>
+      <button class="btn btn-danger" id="confirmOkBtn">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div id="editEntryModal" class="modal-overlay" hidden>
+  <div class="modal" style="max-width:420px;">
+    <div class="card-title" style="margin-bottom:14px;">Edit time entry</div>
+    <input type="hidden" id="editEntryId">
+    <div class="grid-2">
+      <div class="field"><label for="editEntryDate">Date</label><input type="date" id="editEntryDate"></div>
+      <div class="field"><label for="editEntryHours">Hours</label><input type="number" id="editEntryHours" step="0.05" min="0.05"></div>
+    </div>
+    <div class="field"><label for="editEntryDesc">Description</label><input type="text" id="editEntryDesc"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="editEntryCancelBtn" type="button">Cancel</button>
+      <button class="btn btn-primary" id="editEntrySaveBtn" type="button">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<div id="editExpenseModal" class="modal-overlay" hidden>
+  <div class="modal" style="max-width:420px;">
+    <div class="card-title" style="margin-bottom:14px;">Edit expense</div>
+    <input type="hidden" id="editExpenseId">
+    <div class="grid-2">
+      <div class="field"><label for="editExpenseDate">Date</label><input type="date" id="editExpenseDate"></div>
+      <div class="field"><label for="editExpenseAmount">Amount</label><input type="number" id="editExpenseAmount" step="0.01" min="0.01"></div>
+    </div>
+    <div class="field"><label for="editExpenseTitle">Title</label><input type="text" id="editExpenseTitle"></div>
+    <div class="field">
+      <label>Receipt (optional, JPEG or PNG)</label>
+      <div id="editExpenseReceiptCurrent" style="display:flex;align-items:center;gap:10px;margin-bottom:8px;" hidden>
+        <img id="editExpenseReceiptThumb" alt="Current receipt" style="width:44px;height:44px;object-fit:cover;border-radius:6px;border:1px solid var(--border);">
+        <button type="button" class="muted-link" id="editExpenseReceiptRemoveBtn">Remove receipt</button>
+      </div>
+      <input type="file" id="editExpenseReceiptFile" accept="image/jpeg,image/png">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="editExpenseCancelBtn" type="button">Cancel</button>
+      <button class="btn btn-primary" id="editExpenseSaveBtn" type="button">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<div id="receiptViewModal" class="modal-overlay" hidden>
+  <div class="modal" style="max-width:520px;">
+    <div class="card-title" id="receiptViewTitle" style="margin-bottom:14px;">Receipt</div>
+    <img id="receiptViewImg" alt="Receipt" style="width:100%;border-radius:8px;border:1px solid var(--border);display:block;">
+    <div class="modal-actions" style="margin-top:16px;">
+      <button class="btn btn-ghost" id="receiptViewCloseBtn" type="button">Close</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
