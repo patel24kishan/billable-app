@@ -1,4 +1,5 @@
 // Boot only: bind every screen synchronously, then open the store and subscribe.
+import './fonts.css';
 import './style.css';
 import { createStore } from './lib/store/index.js';
 import { createDownloads } from './lib/downloads.js';
