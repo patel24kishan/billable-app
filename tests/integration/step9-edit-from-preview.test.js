@@ -209,9 +209,47 @@ describe('step 9: edit expenses from the invoice preview (D2)', () => {
     await openFromPreview(ids.beta);
     pickFile('b.png');
     await saveAndReload();
-    expect(box(ids.beta).checked).toBe(true); // a replaced receipt defaults to attached
+    expect(box(ids.beta).checked).toBe(false); // a replaced receipt keeps the user's untick
     expect(box(ids.gamma).checked).toBe(true);
     expect(footer()).toEqual(['$95.00', '$12.35', '$107.35']);
+
+    // a receipt added back to alpha (removed above, so no live prior tick) defaults to ticked
+    await openFromPreview(ids.alpha);
+    pickFile('a.png');
+    await saveAndReload();
+    expect(boxIds()).toEqual([ids.alpha, ids.beta, ids.gamma]);
+    expect(box(ids.alpha).checked).toBe(true);
+    expect(box(ids.beta).checked).toBe(false);
+  });
+
+  it('untick, replace the receipt in the modal: stays unticked and is not in the invoice', async () => {
+    await preview();
+    tick(box(ids.beta), false);
+    await openFromPreview(ids.beta);
+    pickFile('beta-new.png');
+    await saveAndReload();
+    expect(box(ids.beta).checked).toBe(false);
+    expect(box(ids.alpha).checked).toBe(true);
+    expect((await stored(ids.beta)).receiptData).toBe('data:image/png;base64,NEW_beta-new.png');
+
+    await generate();
+    const list = await invoices();
+    expect(list.length).toBe(1);
+    const inv = list[0].invoiceDoc || list[0];
+    expect(inv.receipts.map((q) => q.title)).toEqual(['Alpha']);
+    expect(inv.receipts.some((q) => q.dataUrl === 'data:image/png;base64,NEW_beta-new.png')).toBe(false);
+  });
+
+  it('an expense with no receipt that gets one added is ticked by default', async () => {
+    await preview();
+    tick(box(ids.alpha), false); // unrelated untick stays
+    expect(box(ids.gamma)).toBeNull();
+    await openFromPreview(ids.gamma);
+    pickFile('gamma.png');
+    await saveAndReload();
+    expect(box(ids.gamma).checked).toBe(true);
+    expect(box(ids.alpha).checked).toBe(false);
+    expect(state.invPreviewRows.find((r) => r.id === ids.gamma).attachReceipt).toBe(true);
   });
 
   it('an edit while no preview is showing (Track tab) leaves the Invoices preview alone', async () => {
@@ -292,7 +330,8 @@ describe('step 9: edit expenses from the invoice preview (D2)', () => {
     const rows = await invoicesUi.loadInvoicePreview({ keepAttach: true });
     expect(rows).toBe(state.invPreviewRows);
     const flagsById = Object.fromEntries(rows.filter((r) => r.type === 'expense').map((r) => [r.id, r.attachReceipt]));
-    expect(flagsById).toEqual({ [ids.alpha]: false, [ids.beta]: true, [ids.gamma]: undefined, [delta]: true });
+    // beta's receipt was replaced but its untick is kept; the new delta defaults to ticked
+    expect(flagsById).toEqual({ [ids.alpha]: false, [ids.beta]: false, [ids.gamma]: undefined, [delta]: true });
     expect(box(ids.alpha).checked).toBe(false);
     expect(box(delta).checked).toBe(true);
 

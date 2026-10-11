@@ -21,11 +21,18 @@ describe('applyAttachReceipt', () => {
     expect(flags(next)).toEqual([true, undefined, false]);
   });
 
-  it('new rows and rows whose receipt was added or replaced default to attached', () => {
-    const prev = [ex('a', R1, { attachReceipt: false }), ex('b', null), ex('c', R1, { attachReceipt: false })];
-    const next = [ex('a', R2), ex('b', R1), ex('c', R1), ex('d', R1)];
+  it('new rows and receipts added to an expense that had none default to attached', () => {
+    const prev = [ex('b', null), ex('c', R1, { attachReceipt: false })];
+    const next = [ex('b', R1), ex('c', R1), ex('d', R1)];
     applyAttachReceipt(next, prev);
-    expect(flags(next)).toEqual([true, true, false, true]);
+    expect(flags(next)).toEqual([true, false, true]);
+  });
+
+  it('a replaced receipt keeps the previous choice exactly (unticked or ticked)', () => {
+    const prev = [ex('a', R1, { attachReceipt: false }), ex('b', R1, { attachReceipt: true })];
+    const next = [ex('a', R2), ex('b', R2)];
+    applyAttachReceipt(next, prev);
+    expect(flags(next)).toEqual([false, true]);
   });
 
   it('a removed receipt leaves no choice on the row', () => {

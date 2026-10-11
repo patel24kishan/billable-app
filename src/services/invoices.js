@@ -22,9 +22,10 @@ export function buildPreviewRows(entryDatas, expenseDatas, includeBilled){
 /**
  * D1/D2: sets attachReceipt on every expense row of newRows that has a receipt.
  * With prevRows (a reload of the same preview), an expense keeps its previous
- * choice when it had the same receipt before; a new row, or a row whose
- * receipt was added or replaced, defaults to attached. Without prevRows every
- * receipt is attached (a fresh preview). Mutates and returns newRows.
+ * choice exactly as the user left it, even when its receipt was replaced; it
+ * defaults to attached only when there is no previous choice for that id (a
+ * new row, or a receipt added to an expense that had none). Without prevRows
+ * every receipt is attached (a fresh preview). Mutates and returns newRows.
  */
 export function applyAttachReceipt(newRows, prevRows){
   var prev={};
@@ -32,7 +33,7 @@ export function applyAttachReceipt(newRows, prevRows){
   newRows.forEach(function(r){
     if(r.type!=='expense' || !hasReceipt(r)) return;
     var p=prev[r.id];
-    r.attachReceipt = (p && getReceipt(p).dataUrl===getReceipt(r).dataUrl) ? p.attachReceipt!==false : true;
+    r.attachReceipt = p ? p.attachReceipt!==false : true;
   });
   return newRows;
 }
