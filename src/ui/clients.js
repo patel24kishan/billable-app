@@ -70,9 +70,9 @@ export function bind(){
   $('#clientForm').addEventListener('submit', function(e){
     e.preventDefault();
     if(!state.store){ toast('Not connected — try reloading the page.','error'); return; }
-    var data={ name:$('#clientName').value.trim(), email:$('#clientEmail').value.trim(), address:$('#clientAddress').value.trim(), archived:false };
+    var data={ name:$('#clientName').value.trim(), email:$('#clientEmail').value.trim(), address:$('#clientAddress').value.trim() };
     if(!data.name) return;
-    var p = editingClientId ? state.store.collection(COLLECTIONS.clients).doc(editingClientId).update(data) : state.store.collection(COLLECTIONS.clients).add(Object.assign(data,{createdAt:new Date().toISOString()}));
+    var p = editingClientId ? state.store.collection(COLLECTIONS.clients).doc(editingClientId).update(data) : state.store.collection(COLLECTIONS.clients).add(Object.assign(data,{archived:false,createdAt:new Date().toISOString()}));
     p.then(function(){ toast(editingClientId?'Client updated.':'Client added.','success'); resetClientForm(); })
      .catch(function(err){ toast('Could not save client: '+err.message,'error'); });
   });
