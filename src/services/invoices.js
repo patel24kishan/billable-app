@@ -1,7 +1,7 @@
 // Invoice workflow logic: preview rows, the invoice snapshot, the PDF filename,
 // and recording a generated invoice. No DOM; only recordInvoice touches the store.
 import { hoursFromSeconds } from '../domain/dates.js';
-import { getEffectiveTaxLines } from '../domain/tax.js';
+import { computeInvoiceTotals } from '../domain/invoiceTotals.js';
 import { hasReceipt, getReceipt } from '../lib/receipts.js';
 import { COLLECTIONS, DOCS } from '../lib/schema.js';
 
@@ -25,15 +25,10 @@ export function buildInvoiceDoc({ rows, meta, settings, generatedAt }){
   var client=meta.client;
   var timeRows=rows.filter(function(r){return r.type==='time';});
   var expenseRows=rows.filter(function(r){return r.type==='expense';});
-  var totalSeconds=timeRows.reduce(function(a,r){return a+r.seconds;},0);
-  var totalHours=hoursFromSeconds(totalSeconds);
-  var timeAmount=Math.round(totalHours*(settings.rate||0)*100)/100;
-  var expenseAmount=Math.round(expenseRows.reduce(function(a,r){return a+r.amount;},0)*100)/100;
   var invoiceNumber=settings.nextInvoiceNumber||1;
-  var subtotal=Math.round((timeAmount+expenseAmount)*100)/100;
-  var taxLines=getEffectiveTaxLines(settings).map(function(t){ return { label:t.label, rate:t.rate, amount:Math.round(subtotal*t.rate*100)/100 }; });
-  var taxTotal=Math.round(taxLines.reduce(function(a,t){return a+t.amount;},0)*100)/100;
-  var grandTotal=Math.round((subtotal+taxTotal)*100)/100;
+  // Same totals as the preview (per-entry rounding), so the saved invoice equals the sum of its line items.
+  var totals=computeInvoiceTotals(rows, settings);
+  var totalHours=totals.totalHours, subtotal=totals.subtotal, taxLines=totals.taxLines, taxTotal=totals.taxTotal, grandTotal=totals.grandTotal;
   var receipts=expenseRows.filter(function(r){return hasReceipt(r);}).map(function(r){
     var rc=getReceipt(r);
     return { title:r.title, dataUrl:rc.dataUrl, type:rc.type||'image/jpeg', width:rc.width||800, height:rc.height||600 };

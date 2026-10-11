@@ -34,7 +34,7 @@ describe('buildPreviewRows', () => {
   });
 });
 
-describe('buildInvoiceDoc (pre-B1 snapshot math)', () => {
+describe('buildInvoiceDoc (snapshot)', () => {
   const rows = [
     { type: 'time', id: 'e1', date: '2026-10-01', seconds: 3600, description: 'Design' },
     { type: 'expense', id: 'x1', date: '2026-10-02', amount: 10, title: 'Fonts', receiptData: 'data:image/png;base64,AA' },
@@ -89,6 +89,55 @@ describe('buildInvoiceDoc (pre-B1 snapshot math)', () => {
     expect(invoiceDoc.totalAmount).toBe(0);
     expect(invoiceDoc.taxLines).toEqual([]);
     expect(invoiceDoc.notes).toBe('');
+  });
+});
+
+describe('buildInvoiceDoc totals (B1: per-entry rounding, same as the preview)', () => {
+  const client = { id: 'c1', name: 'Acme Co', email: '', address: '' };
+  const generatedAt = '2026-10-10T12:00:00.000Z';
+  const three = [1, 2, 3].map((n) => ({ type: 'time', id: 'e' + n, date: '2026-10-0' + n, seconds: 1000 }));
+  const build = (rows, settings) => buildInvoiceDoc({ rows, meta: { client, month: '2026-10' }, settings, generatedAt }).invoiceDoc;
+  const sumLines = (doc) => Math.round(doc.lineItems.reduce((a, l) => a + l.amount, 0) * 100) / 100;
+
+  it('3 x 1000 s at 65/h in Ontario: 0.84 h, 54.60, HST 7.10, 61.70', () => {
+    const doc = build(three, s({ rate: 65, taxCountry: 'Canada', taxRegion: 'Ontario' }));
+    expect(doc.lineItems.map((l) => [l.hours, l.amount])).toEqual([[0.28, 18.2], [0.28, 18.2], [0.28, 18.2]]);
+    expect(doc.totalHours).toBe(0.84);
+    expect(doc.totalAmount).toBe(54.6);
+    expect(doc.taxLines).toEqual([{ label: 'HST', rate: 0.13, amount: 7.1 }]);
+    expect(doc.taxTotal).toBe(7.1);
+    expect(doc.grandTotal).toBe(61.7);
+    expect(doc.totalAmount).toBe(sumLines(doc));
+  });
+
+  it('with an expense: subtotal is the line items sum, tax on the subtotal', () => {
+    const rows = three.concat([{ type: 'expense', id: 'x1', date: '2026-10-04', amount: 12.5, title: 'Fonts' }]);
+    const doc = build(rows, s({ rate: 65, taxCountry: 'Canada', taxRegion: 'Ontario' }));
+    expect(doc.totalHours).toBe(0.84);
+    expect(doc.totalAmount).toBe(67.1);
+    expect(doc.totalAmount).toBe(sumLines(doc));
+    expect(doc.taxLines[0].amount).toBe(8.72);
+    expect(doc.taxTotal).toBe(8.72);
+    expect(doc.grandTotal).toBe(75.82);
+  });
+
+  it('no tax: grand total equals subtotal', () => {
+    const doc = build(three, s({ rate: 65 }));
+    expect(doc.totalHours).toBe(0.84);
+    expect(doc.totalAmount).toBe(54.6);
+    expect(doc.totalAmount).toBe(sumLines(doc));
+    expect(doc.taxLines).toEqual([]);
+    expect(doc.taxTotal).toBe(0);
+    expect(doc.grandTotal).toBe(54.6);
+  });
+
+  it('zero rate: hours still total per entry, amounts are zero', () => {
+    const doc = build(three, s({ rate: 0, taxCountry: 'Canada', taxRegion: 'Ontario' }));
+    expect(doc.totalHours).toBe(0.84);
+    expect(doc.totalAmount).toBe(0);
+    expect(doc.totalAmount).toBe(sumLines(doc));
+    expect(doc.taxTotal).toBe(0);
+    expect(doc.grandTotal).toBe(0);
   });
 });
 
