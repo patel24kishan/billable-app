@@ -34,8 +34,29 @@ export function openReceiptView(expense){
 }
 
 /* ---------------- edit expense ---------------- */
+/**
+ * Opens the edit-expense modal. Uses the Track list's copy when loaded; an
+ * expense outside that list's window (e.g. opened from the invoice preview)
+ * is read from the store, and the returned promise settles once it is open.
+ */
 export function openEditExpense(id){
-  var x=state.expenses.find(function(e){return e.id===id;}); if(!x) return;
+  var x=state.expenses.find(function(e){return e.id===id;});
+  if(x){ fillEditExpense(id, x); return Promise.resolve(); }
+  if(!state.store) return Promise.resolve();
+  return state.store.collection(COLLECTIONS.expenses).doc(id).get().then(function(snap){
+    if(snap.exists) fillEditExpense(id, Object.assign({id:id}, snap.data()));
+  }).catch(function(err){ toast('Could not open expense: '+err.message,'error'); });
+}
+
+// D2: listeners run after a successful edit-expense save, with the expense id.
+// (Callers such as ui/invoices.js register here, so this module imports no screen.)
+var expenseSavedListeners=[];
+export function onExpenseSaved(cb){
+  expenseSavedListeners.push(cb);
+  return function(){ expenseSavedListeners=expenseSavedListeners.filter(function(f){ return f!==cb; }); };
+}
+
+function fillEditExpense(id, x){
   $('#editExpenseId').value=id; $('#editExpenseDate').value=x.date; $('#editExpenseAmount').value=x.amount; $('#editExpenseTitle').value=x.title;
   $('#editExpenseReceiptFile').value='';
   editExpenseReceiptRemoved=false;
@@ -90,7 +111,10 @@ export function bind(){
       Object.assign(data, clearedReceiptFields());
     }
     state.store.collection(COLLECTIONS.expenses).doc(id).update(data)
-      .then(function(){ $('#editExpenseModal').hidden=true; toast('Expense updated.','success'); })
+      .then(function(){
+        $('#editExpenseModal').hidden=true; toast('Expense updated.','success');
+        expenseSavedListeners.forEach(function(cb){ cb(id); });
+      })
       .catch(function(err){ toast('Could not update: '+err.message,'error'); })
       .finally(function(){ saveBtn.disabled=false; saveBtn.textContent='Save Changes'; });
   });

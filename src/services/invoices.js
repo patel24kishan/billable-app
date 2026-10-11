@@ -19,6 +19,24 @@ export function buildPreviewRows(entryDatas, expenseDatas, includeBilled){
   return rows;
 }
 
+/**
+ * D1/D2: sets attachReceipt on every expense row of newRows that has a receipt.
+ * With prevRows (a reload of the same preview), an expense keeps its previous
+ * choice when it had the same receipt before; a new row, or a row whose
+ * receipt was added or replaced, defaults to attached. Without prevRows every
+ * receipt is attached (a fresh preview). Mutates and returns newRows.
+ */
+export function applyAttachReceipt(newRows, prevRows){
+  var prev={};
+  (prevRows||[]).forEach(function(r){ if(r.type==='expense' && hasReceipt(r)) prev[r.id]=r; });
+  newRows.forEach(function(r){
+    if(r.type!=='expense' || !hasReceipt(r)) return;
+    var p=prev[r.id];
+    r.attachReceipt = (p && getReceipt(p).dataUrl===getReceipt(r).dataUrl) ? p.attachReceipt!==false : true;
+  });
+  return newRows;
+}
+
 var TYPE_RANK={ time:0, expense:1 };
 /**
  * Invoice line order: date asc, then time rows before expense rows, then

@@ -78,9 +78,11 @@ export function bind(){
   });
 }
 
-export function subscribe(){
+/** onClientsChanged runs after every clients render (main.js uses it to drop a deleted client's invoice preview). */
+export function subscribe(onClientsChanged){
   state.store.collection(COLLECTIONS.clients).orderBy('name').onSnapshot(function(snap){
     state.clients = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
     renderClients(); renderClientDropdowns();
+    if(onClientsChanged) onClientsChanged();
   }, function(err){ toast('Clients error: '+err.message,'error'); });
 }

@@ -31,7 +31,7 @@ async function boot(){
   state.receipts = createReceipts(state.store);
   // Fixed order: each onSnapshot fires synchronously on subscribe.
   settingsUi.subscribe(function(){ if(state.invPreviewRows) invoicesUi.renderInvoicePreview(); });
-  clientsUi.subscribe();
+  clientsUi.subscribe(invoicesUi.onClientsChanged);
   trackUi.subscribeEntries();
   trackUi.subscribeExpenses();
   invoicesUi.subscribe();
