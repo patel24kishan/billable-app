@@ -1,6 +1,8 @@
 // The timer state machine as pure transitions. No store, no DOM, no guards:
 // callers decide when a transition is allowed, exactly as before.
 
+import { localDateStr } from './dates.js';
+
 export const IDLE_TIMER = Object.freeze({ status:'idle', clientId:null, clientName:'', description:'', accumulatedSeconds:0, segmentStartedAt:null, startedAt:null });
 
 export const TIMER_LABELS = { running:'Tracking', paused:'Paused', stopped:'Ready to save' };
@@ -40,7 +42,7 @@ export function entryFromStoppedTimer(timer, nowIso){
     seconds: seconds,
     entry: {
       clientId:timer.clientId, clientName:timer.clientName,
-      date:(timer.startedAt||nowIso).slice(0,10), description:timer.description||'', seconds:seconds,
+      date:localDateStr(timer.startedAt||nowIso), description:timer.description||'', seconds:seconds,
       invoiced:false, createdAt:nowIso
     }
   };

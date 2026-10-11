@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { IDLE_TIMER, TIMER_LABELS, sessionElapsedSeconds, startTimer, pauseTimer, resumeTimer, stopTimer, entryFromStoppedTimer } from '../../src/domain/timer.js';
+import { localDateStr } from '../../src/domain/dates.js';
 
 const T0 = '2026-10-10T12:00:00.000Z';
 const ms = (iso) => new Date(iso).getTime();
@@ -66,11 +67,11 @@ describe('timer domain', () => {
     const st = { ...running(), status: 'stopped', accumulatedSeconds: 120.4, segmentStartedAt: null };
     expect(entryFromStoppedTimer(st, nowIso)).toEqual({
       seconds: 120,
-      entry: { clientId: 'c1', clientName: 'Acme', date: '2026-10-10', description: 'Design', seconds: 120, invoiced: false, createdAt: nowIso }
+      entry: { clientId: 'c1', clientName: 'Acme', date: localDateStr(T0), description: 'Design', seconds: 120, invoiced: false, createdAt: nowIso }
     });
     expect(entryFromStoppedTimer({ ...st, accumulatedSeconds: 0.4 }, nowIso).seconds).toBe(0);
     const noStart = entryFromStoppedTimer({ ...st, startedAt: null, description: '' }, nowIso);
-    expect(noStart.entry.date).toBe('2026-10-10');
+    expect(noStart.entry.date).toBe(localDateStr(nowIso));
     expect(noStart.entry.description).toBe('');
   });
 
