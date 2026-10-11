@@ -137,10 +137,12 @@ describe('store: queries', () => {
     expect((await store.collection('entries').limit(3).get()).docs.length).toBe(3);
   });
 
-  it('orderBy is single: a second orderBy replaces the first', async () => {
+  // Step 6 (C2): chained orderBy now adds a sort key instead of replacing the first.
+  it('orderBy chains: a second orderBy breaks ties of the first', async () => {
     const store = await createStore({ now: clock });
     await seed(store);
-    expect(ns(await store.collection('entries').orderBy('date').orderBy('n', 'desc').get())).toEqual([5, 4, 3, 2, 1]);
+    expect(ns(await store.collection('entries').orderBy('date').orderBy('n', 'desc').get())).toEqual([1, 2, 4, 3, 5]);
+    expect(ns(await store.collection('entries').orderBy('clientId').orderBy('date', 'desc').get())).toEqual([5, 3, 2, 1, 4]);
   });
 
   it('collection get returns every doc with ids', async () => {

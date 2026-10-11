@@ -8,6 +8,7 @@
 // on the caller's object; `add` also fills `createdAt` when the caller did not.
 
 import { stampAdd, stampWrite } from '../schema.js';
+import { compareValues } from '../../domain/order.js';
 
 const DB_NAME = 'billable';
 const DB_VERSION = 1;
@@ -71,13 +72,20 @@ function applyWhere(docs, wheres) {
   return docs;
 }
 
-function applyOrder(docs, order) {
-  if (!order) return docs;
-  const [field, dir] = order;
+// orders: [[field, dir], ...] applied in call order; a missing field sorts as
+// the empty string (see compareValues). Like Firestore, the doc id is the final
+// tiebreak (in the direction of the last orderBy), so the result never depends
+// on IndexedDB key order or insertion order.
+function applyOrder(docs, orders) {
+  if (!orders || !orders.length) return docs;
+  const lastDir = orders[orders.length - 1][1];
   return docs.slice().sort((a, b) => {
-    const av = a.data[field], bv = b.data[field];
-    const cmp = av < bv ? -1 : av > bv ? 1 : 0;
-    return dir === 'desc' ? -cmp : cmp;
+    for (const [field, dir] of orders) {
+      const cmp = compareValues(a.data[field], b.data[field]);
+      if (cmp) return dir === 'desc' ? -cmp : cmp;
+    }
+    const cmp = a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+    return lastDir === 'desc' ? -cmp : cmp;
   });
 }
 
@@ -153,7 +161,8 @@ export async function createLocalStore(options = {}) {
         return queryRef(path, wheres.concat([[field, op, val]]), order, lim);
       },
       orderBy(field, dir) {
-        return queryRef(path, wheres, [field, dir || 'asc'], lim);
+        // Chained orderBy calls add sort keys (multi-key sort, in call order).
+        return queryRef(path, wheres, order.concat([[field, dir || 'asc']]), lim);
       },
       limit(n) {
         return queryRef(path, wheres, order, n);
@@ -196,13 +205,13 @@ export async function createLocalStore(options = {}) {
         return docRef(path, id);
       },
       orderBy(field, dir) {
-        return queryRef(path, [], [field, dir || 'asc']);
+        return queryRef(path, [], [[field, dir || 'asc']]);
       },
       where(field, op, val) {
-        return queryRef(path, [[field, op, val]], null);
+        return queryRef(path, [[field, op, val]], []);
       },
       limit(n) {
-        return queryRef(path, [], null, n);
+        return queryRef(path, [], [], n);
       },
       get() {
         const docs = Object.keys(store[path]).map((id) => ({ id, data: () => store[path][id] }));

@@ -79,7 +79,7 @@ export function subscribeTimer(){
 /* ---------------- recent entries ---------------- */
 export function subscribeEntries(){
   if(entriesUnsub) entriesUnsub();
-  entriesUnsub = state.store.collection(COLLECTIONS.entries).orderBy('date','desc').limit(200).onSnapshot(function(snap){
+  entriesUnsub = state.store.collection(COLLECTIONS.entries).orderBy('date','desc').orderBy('createdAt','desc').limit(200).onSnapshot(function(snap){
     state.entries = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
     renderEntries();
   }, function(err){ toast('Time log error: '+err.message,'error'); });
@@ -100,7 +100,7 @@ function renderEntries(){
 /* ---------------- expenses ---------------- */
 export function subscribeExpenses(){
   if(expensesUnsub) expensesUnsub();
-  expensesUnsub = state.store.collection(COLLECTIONS.expenses).orderBy('date','desc').limit(200).onSnapshot(function(snap){
+  expensesUnsub = state.store.collection(COLLECTIONS.expenses).orderBy('date','desc').orderBy('createdAt','desc').limit(200).onSnapshot(function(snap){
     state.expenses = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
     renderExpenses();
   }, function(err){ toast('Expenses error: '+err.message,'error'); });

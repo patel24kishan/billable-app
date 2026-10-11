@@ -4,17 +4,32 @@ import { hoursFromSeconds } from '../domain/dates.js';
 import { computeInvoiceTotals } from '../domain/invoiceTotals.js';
 import { hasReceipt, getReceipt } from '../lib/receipts.js';
 import { COLLECTIONS, DOCS } from '../lib/schema.js';
+import { compareValues } from '../domain/order.js';
 
 /**
  * entryDatas / expenseDatas: arrays of {id, ...data}. Returns the preview rows
- * ({type, id, ...data}), un-invoiced only unless includeBilled, sorted by date.
+ * ({type, id, ...data}), un-invoiced only unless includeBilled, in invoice line
+ * order (compareInvoiceRows).
  */
 export function buildPreviewRows(entryDatas, expenseDatas, includeBilled){
   var timeRows=entryDatas.map(function(d){ return Object.assign({type:'time', id:d.id}, d); }).filter(function(r){ return includeBilled || !r.invoiced; });
   var expenseRows=expenseDatas.map(function(d){ return Object.assign({type:'expense', id:d.id}, d); }).filter(function(r){ return includeBilled || !r.invoiced; });
   var rows=timeRows.concat(expenseRows);
-  rows.sort(function(a,b){ return a.date<b.date?-1:a.date>b.date?1:(a.type<b.type?1:-1); });
+  rows.sort(compareInvoiceRows);
   return rows;
+}
+
+var TYPE_RANK={ time:0, expense:1 };
+/**
+ * Invoice line order: date asc, then time rows before expense rows, then
+ * createdAt asc, then id asc. A total order: 0 only for identical keys, so the
+ * result never depends on the input (IndexedDB) order.
+ */
+export function compareInvoiceRows(a,b){
+  return compareValues(a.date, b.date)
+    || compareValues(TYPE_RANK[a.type], TYPE_RANK[b.type])
+    || compareValues(a.createdAt, b.createdAt)
+    || compareValues(a.id, b.id);
 }
 
 /**
