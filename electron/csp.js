@@ -3,9 +3,8 @@
 // The packaged app needs only its own files ('self'), inline styles (the UI
 // sets style="" attributes), data:/blob: images (receipts are data URLs) and
 // self/data fonts. No network origins are allowed: the desktop app is
-// local-first. Until the fonts are bundled (plan step 14) the Google Fonts
-// <link> in index.html is blocked by this policy and the UI falls back to
-// the CSS fallback fonts; nothing is fetched from the network.
+// local-first; the fonts are bundled with the app (plan step 14), so nothing
+// is fetched from the network.
 import { createHash } from 'node:crypto';
 
 /**

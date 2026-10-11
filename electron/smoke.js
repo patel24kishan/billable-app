@@ -8,11 +8,7 @@ import path from 'node:path';
 // Console output that is expected and must not fail the run.
 const EXPECTED_CONSOLE = [
   // Our own CSP probe (see rendererSmoke step "CSP is enforced").
-  /csp-probe\.invalid/,
-  // TEMPORARY until plan step 14 (offline fonts) is merged: index.html still
-  // links Google Fonts, which this CSP blocks on purpose (fallback fonts are used).
-  // Remove this entry once the <link> to fonts.googleapis.com is gone.
-  /Refused to load the stylesheet 'https:\/\/fonts\.googleapis\.com\//
+  /csp-probe\.invalid/
 ];
 
 /** True for console messages that make the smoke fail: errors and any CSP report. */
