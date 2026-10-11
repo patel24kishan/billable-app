@@ -13,7 +13,7 @@ Everything Billable stores lives on the device, in one IndexedDB database. Scree
 | Single documents | `settings/main`, `state/timer` | `schema.js` `DOCS` |
 | Ids | `'id_' + Math.random().toString(36).slice(2) + Date.now().toString(36)`, created by `add()` | `localStore.js` `uid()` |
 | Reads | all records are loaded once at start (`getAll`) into an in-memory mirror; queries and `onSnapshot` listeners run on that mirror | `createLocalStore()` |
-| Desktop app | the same IndexedDB code, stored in the Electron userData folder (`%APPDATA%\Billable` for the installed app; a temp folder for smoke runs) | `electron/main.js`, `electron/smokeGuard.js` |
+| Desktop app | the same IndexedDB code, stored in the Electron userData folder (`%APPDATA%billable` for the installed app; a temp folder for smoke runs) | `electron/main.js`, `electron/smokeGuard.js` |
 
 ### Timestamps (added by the store, not by screens)
 
