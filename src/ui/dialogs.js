@@ -72,6 +72,7 @@ export function bind(){
   $('#editEntrySaveBtn').addEventListener('click', function(){
     var id=$('#editEntryId').value; var hours=parseFloat($('#editEntryHours').value);
     if(!hours||hours<=0){ toast('Enter a valid number of hours.','error'); return; }
+    if(!$('#editEntryDate').value){ toast('Enter a valid date.','error'); return; }
     state.store.collection(COLLECTIONS.entries).doc(id).update({ date:$('#editEntryDate').value, seconds:Math.round(hours*3600), description:$('#editEntryDesc').value.trim() })
       .then(function(){ $('#editEntryModal').hidden=true; toast('Entry updated.','success'); })
       .catch(function(err){ toast('Could not update: '+err.message,'error'); });
@@ -98,6 +99,7 @@ export function bind(){
     var id=$('#editExpenseId').value; var amount=parseFloat($('#editExpenseAmount').value);
     var title=$('#editExpenseTitle').value.trim();
     if(!amount||amount<=0||!title){ toast('Enter a title and a valid amount.','error'); return; }
+    if(!$('#editExpenseDate').value){ toast('Enter a valid date.','error'); return; }
     var data={ date:$('#editExpenseDate').value, amount:Math.round(amount*100)/100, title:title };
     var newFile=$('#editExpenseReceiptFile').files[0];
     var saveBtn=$('#editExpenseSaveBtn');

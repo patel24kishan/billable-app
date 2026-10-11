@@ -71,7 +71,7 @@ export function bind(){
     e.preventDefault();
     if(!state.store){ toast('Not connected — try reloading the page.','error'); return; }
     var data={ name:$('#clientName').value.trim(), email:$('#clientEmail').value.trim(), address:$('#clientAddress').value.trim() };
-    if(!data.name) return;
+    if(!data.name){ toast('Enter a client name.','error'); return; }
     var p = editingClientId ? state.store.collection(COLLECTIONS.clients).doc(editingClientId).update(data) : state.store.collection(COLLECTIONS.clients).add(Object.assign(data,{archived:false,createdAt:new Date().toISOString()}));
     p.then(function(){ toast(editingClientId?'Client updated.':'Client added.','success'); resetClientForm(); })
      .catch(function(err){ toast('Could not save client: '+err.message,'error'); });
@@ -81,7 +81,9 @@ export function bind(){
 /** onClientsChanged runs after every clients render (main.js uses it to drop a deleted client's invoice preview). */
 export function subscribe(onClientsChanged){
   state.store.collection(COLLECTIONS.clients).orderBy('name').onSnapshot(function(snap){
-    state.clients = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+    state.clients = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); }).sort(function(a,b){
+      return String(a.name||'').localeCompare(String(b.name||''), undefined, {sensitivity:'base'}) || (a.id<b.id?-1:a.id>b.id?1:0);
+    });
     renderClients(); renderClientDropdowns();
     if(onClientsChanged) onClientsChanged();
   }, function(err){ toast('Clients error: '+err.message,'error'); });

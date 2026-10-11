@@ -109,7 +109,7 @@
             <div class="field"><label for="manDate">Date</label><input type="date" id="manDate" required></div>
           </div>
           <div class="grid-2">
-            <div class="field"><label for="manHours">Hours</label><input type="number" id="manHours" step="0.05" min="0.05" placeholder="1.5" required></div>
+            <div class="field"><label for="manHours">Hours</label><input type="number" id="manHours" step="any" min="0.01" placeholder="1.5" required></div>
             <div class="field"><label for="manDesc">Description (optional)</label><input type="text" id="manDesc" placeholder="e.g. Bug fixes"></div>
           </div>
           <button class="btn btn-primary" type="submit">Add Entry</button>
@@ -263,7 +263,7 @@
     <input type="hidden" id="editEntryId">
     <div class="grid-2">
       <div class="field"><label for="editEntryDate">Date</label><input type="date" id="editEntryDate"></div>
-      <div class="field"><label for="editEntryHours">Hours</label><input type="number" id="editEntryHours" step="0.05" min="0.05"></div>
+      <div class="field"><label for="editEntryHours">Hours</label><input type="number" id="editEntryHours" step="any" min="0.01"></div>
     </div>
     <div class="field"><label for="editEntryDesc">Description</label><input type="text" id="editEntryDesc"></div>
     <div class="modal-actions">

@@ -124,6 +124,7 @@ export function bind(){
   /* timer */
   $('#startTimerBtn').addEventListener('click',function(){
     if(!state.store) return;
+    if(state.timer.status!=='idle') return;
     var clientId=$('#timerClient').value;
     if(!clientId){ toast('Add a client first.','error'); return; }
     var client=state.clients.find(function(c){return c.id===clientId;});
@@ -164,7 +165,7 @@ export function bind(){
     if(!state.store) return;
     var clientId=$('#manClient').value; if(!clientId){ toast('Add a client first.','error'); return; }
     var client=state.clients.find(function(c){return c.id===clientId;});
-    var hours=parseFloat($('#manHours').value); if(!hours||hours<=0) return;
+    var hours=parseFloat($('#manHours').value); if(!hours||hours<=0){ toast('Enter a valid number of hours.','error'); return; }
     var entry={ clientId:clientId, clientName:client?client.name:'', date:$('#manDate').value||todayStr(), description:$('#manDesc').value.trim(), seconds:Math.round(hours*3600), invoiced:false, createdAt:new Date().toISOString() };
     state.store.collection(COLLECTIONS.entries).add(entry).then(function(){
       toast('Entry added.','success'); $('#manualForm').reset(); $('#manDate').value=todayStr();
@@ -192,8 +193,9 @@ export function bind(){
     if(!state.store) return;
     var clientId=$('#expClient').value; if(!clientId){ toast('Add a client first.','error'); return; }
     var client=state.clients.find(function(c){return c.id===clientId;});
-    var amount=parseFloat($('#expAmount').value); if(!amount||amount<=0) return;
-    var exp={ clientId:clientId, clientName:client?client.name:'', date:$('#expDate').value||todayStr(), title:$('#expTitle').value.trim(), amount:Math.round(amount*100)/100, invoiced:false, createdAt:new Date().toISOString() };
+    var amount=parseFloat($('#expAmount').value); var title=$('#expTitle').value.trim();
+    if(!title||!amount||amount<=0){ toast('Enter a title and a valid amount.','error'); return; }
+    var exp={ clientId:clientId, clientName:client?client.name:'', date:$('#expDate').value||todayStr(), title:title, amount:Math.round(amount*100)/100, invoiced:false, createdAt:new Date().toISOString() };
     var receiptFile=$('#expReceipt').files[0];
     var submitBtn=$('#expSubmitBtn');
     if(receiptFile){
