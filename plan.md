@@ -201,3 +201,8 @@ Tests for 13b (each must fail on the old code; prove with `git stash push -- src
 - 13b-3: a jsdom test of document order of the two form cards (and lists) in `index.html`; ids unchanged.
 - 13b-4 integration: entries across several months, filter October -> only October rows + total hours, filter another month, empty month message, "All months" restores, adding an entry in another month while filtered does not show it but adding one in the filtered month does, editing keeps the filter, the invoice preview is unaffected by the filter.
 - Every async test waits for settle points; full suite 10 runs with 0 unhandled errors; `npm run build` green.
+
+## Phase 6 implementation notes (added after implementation)
+- Done: Step 13 (money format), 13b (edit buttons on every invoice line, aligned numeric columns, time-by-hand above expenses, month filter for Recent entries), 14 (offline fonts), 15 (Electron shell, secure save bridge, CSP, navigation policy, smoke test with enforced temp userData), 16 (electron-builder NSIS installer, placeholder icon, README section). Installer: release/Billable-Setup-1.0.0.exe (unsigned, per-user default, no auto-update, data kept on uninstall).
+- Known follow-ups: upgrade Electron 38 (end-of-life, advisory) to a supported major (44.x) and re-run suite + smoke + packaged smoke; upgrade jspdf/jspdf-autotable (advisories mostly not reachable by this app); replace the placeholder icon; consider code signing; Recent expenses month filter (offered, not built); sync-readiness items (schemaVersion stamping, getCurrentUser stub, soft deletes, export/import, cloud store) still not built.
+- The installer itself has not been run by the agents (install/uninstall untested); the user installs it.
