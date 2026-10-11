@@ -17,16 +17,18 @@ export function renderInvoicePreview(){
   var wrap=$('#invPreviewWrap'); wrap.hidden=false;
   var body=$('#invPreviewBody');
   var foot=$('#invTotalsFoot');
-  if(!state.invPreviewRows.length){ body.innerHTML=''; foot.innerHTML=''; $('#invPreviewEmpty').hidden=false; $('#invTaxJurisdiction').hidden=true; return; }
+  if(!state.invPreviewRows.length){ body.innerHTML=''; foot.innerHTML=''; $('#invReceiptChoice').hidden=true; $('#invPreviewEmpty').hidden=false; $('#invTaxJurisdiction').hidden=true; return; }
   $('#invPreviewEmpty').hidden=true;
   body.innerHTML = state.invPreviewRows.map(function(r){
     if(r.type==='expense'){
       return '<tr><td>'+fmtDateShort(r.date)+'</td><td>'+esc(r.title)+' <span class="pill pill-muted">Expense</span>'+
-        (hasReceipt(r)?' 📎':'')+'</td><td class="hours num">—</td><td class="amount num">'+money(r.amount, state.settings.currency)+'</td></tr>';
+        (hasReceipt(r)?' 📎 <label class="attach-receipt"><input type="checkbox" data-attach-receipt="'+esc(r.id)+'"'+(r.attachReceipt!==false?' checked':'')+' aria-label="Attach receipt for '+esc(r.title)+'"> Attach receipt</label>':'')+'</td><td class="hours num">—</td><td class="amount num">'+money(r.amount, state.settings.currency)+'</td></tr>';
     }
     var h=hoursFromSeconds(r.seconds); var amt=Math.round(h*state.settings.rate*100)/100;
     return '<tr><td>'+fmtDateShort(r.date)+'</td><td>'+esc(r.description||'—')+'</td><td class="hours num">'+h.toFixed(2)+'</td><td class="amount num">'+money(amt, state.settings.currency)+'</td></tr>';
   }).join('');
+
+  $('#invReceiptChoice').hidden=!state.invPreviewRows.some(function(r){return r.type==='expense' && hasReceipt(r);});
 
   var t=computeInvoiceTotals(state.invPreviewRows, state.settings);
   var footRows='<tr><td colspan="2">Subtotal</td><td class="hours num">'+t.totalHours.toFixed(2)+' hrs</td><td class="amount num">'+money(t.subtotal, state.settings.currency)+'</td></tr>';
@@ -111,6 +113,7 @@ export function bind(){
     ]).then(function(results){
       var toData=function(d){ return Object.assign({id:d.id}, d.data()); };
       var rows=buildPreviewRows(results[0].docs.map(toData), results[1].docs.map(toData), includeBilled);
+      rows.forEach(function(r){ if(r.type==='expense' && hasReceipt(r)) r.attachReceipt=true; });
       state.invPreviewRows=rows;
       state.invPreviewMeta={ clientId:clientId, client:state.clients.find(function(c){return c.id===clientId;}), month:monthVal, range:range };
       renderInvoicePreview();
@@ -122,6 +125,20 @@ export function bind(){
   ['#invMonth','#invClient','#invIncludeBilled'].forEach(function(sel){
     $(sel).addEventListener('change', clearInvoicePreview);
   });
+
+  // D1: per-expense receipt choice lives on the preview rows only (no DB access, no clearing).
+  $('#invPreviewBody').addEventListener('change', function(e){
+    var id=e.target.dataset && e.target.dataset.attachReceipt; if(!id || !state.invPreviewRows) return;
+    var row=state.invPreviewRows.find(function(r){return r.type==='expense' && r.id===id;});
+    if(row) row.attachReceipt=!!e.target.checked;
+  });
+  function setAllReceipts(on){
+    if(!state.invPreviewRows) return;
+    state.invPreviewRows.forEach(function(r){ if(r.type==='expense' && hasReceipt(r)) r.attachReceipt=on; });
+    renderInvoicePreview();
+  }
+  $('#invAttachAllBtn').addEventListener('click', function(){ setAllReceipts(true); });
+  $('#invAttachNoneBtn').addEventListener('click', function(){ setAllReceipts(false); });
 
   $('#invGenerateBtn').addEventListener('click', function(){ generateInvoicePdf(); });
 

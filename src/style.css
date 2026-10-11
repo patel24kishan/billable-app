@@ -148,3 +148,7 @@ tr:last-child td{border-bottom:none;}
 .inline-edit input{width:auto;}
 .muted-link{background:none;border:none;color:var(--accent-strong);font-weight:600;font-size:12.5px;cursor:pointer;padding:0;}
 [hidden]{display:none!important;}
+
+.receipt-choice{margin-top:8px;font-size:12.5px;color:var(--text-faint);}
+.attach-receipt{display:inline-flex;align-items:center;gap:5px;margin-left:6px;font-size:12px;color:var(--text-faint);cursor:pointer;}
+.attach-receipt input{width:15px;height:15px;min-height:15px;flex:none;}

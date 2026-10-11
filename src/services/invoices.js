@@ -44,7 +44,7 @@ export function buildInvoiceDoc({ rows, meta, settings, generatedAt }){
   // Same totals as the preview (per-entry rounding), so the saved invoice equals the sum of its line items.
   var totals=computeInvoiceTotals(rows, settings);
   var totalHours=totals.totalHours, subtotal=totals.subtotal, taxLines=totals.taxLines, taxTotal=totals.taxTotal, grandTotal=totals.grandTotal;
-  var receipts=expenseRows.filter(function(r){return hasReceipt(r);}).map(function(r){
+  var receipts=expenseRows.filter(function(r){return hasReceipt(r) && r.attachReceipt!==false;}).map(function(r){
     var rc=getReceipt(r);
     return { title:r.title, dataUrl:rc.dataUrl, type:rc.type||'image/jpeg', width:rc.width||800, height:rc.height||600 };
   });

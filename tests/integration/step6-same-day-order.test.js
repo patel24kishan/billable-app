@@ -103,6 +103,7 @@ describe('step 6: same-day ordering (C2 + M1)', () => {
     $('#invGenerateBtn').click();
     await vi.waitFor(async () => expect((await state.store.collection('invoices').get()).docs.length).toBe(1), WAIT);
     await vi.waitFor(() => expect(state.invPreviewRows).toBeNull(), WAIT);
+    await vi.waitFor(() => expect($('#invGenerateBtn').textContent).toBe('Generate PDF Invoice'), WAIT);
     const inv = (await state.store.collection('invoices').get()).docs[0].data();
     expect(inv.lineItems.map((l) => l.description)).toEqual(INVOICE);
     expect(inv.lineItems.map((l) => l.type)).toEqual(['expense', 'time', 'time', 'time', 'expense', 'expense', 'expense']);

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { buildPreviewRows, buildInvoiceDoc, invoicePdfFilename } from '../../src/services/invoices.js';
+import { buildPdfDoc } from '../../src/services/invoicePdf.js';
 import { defaultSettings } from '../../src/lib/schema.js';
 
 const s = (patch) => Object.assign(defaultSettings(), patch);
@@ -145,5 +146,41 @@ describe('invoicePdfFilename', () => {
   it('pads the number to 4 digits', () => {
     expect(invoicePdfFilename(7, 'Acme-Co', '2026-10')).toBe('Invoice-0007-Acme-Co-2026-10.pdf');
     expect(invoicePdfFilename(12345, 'client', '2026-01')).toBe('Invoice-12345-client-2026-01.pdf');
+  });
+});
+
+describe('buildInvoiceDoc receipt filtering (D1)', () => {
+  const PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+  const exp = (id, extra) => Object.assign({ type: 'expense', id, date: '2026-10-02', title: 'T' + id, amount: 10 }, extra);
+  const withRc = (id, extra) => exp(id, Object.assign({ receiptData: PNG, receiptType: 'image/png', receiptW: 1, receiptH: 1 }, extra));
+  const time = { type: 'time', id: 't1', date: '2026-10-01', seconds: 3600, description: 'Work' };
+  const build = (rows) => buildInvoiceDoc({ rows, meta: { client: { name: 'A' }, month: '2026-10' }, settings: s({ rate: 50 }), generatedAt: 'x' }).invoiceDoc;
+  const titles = (d) => d.receipts.map((r) => r.title);
+
+  it('all ticked attaches all receipts', () => {
+    const d = build([time, withRc('a', { attachReceipt: true }), withRc('b', { attachReceipt: true })]);
+    expect(titles(d)).toEqual(['Ta', 'Tb']);
+  });
+  it('an unticked one is omitted', () => {
+    const d = build([time, withRc('a', { attachReceipt: true }), withRc('b', { attachReceipt: false })]);
+    expect(titles(d)).toEqual(['Ta']);
+  });
+  it('none ticked gives an empty receipts array', () => {
+    const d = build([time, withRc('a', { attachReceipt: false }), withRc('b', { attachReceipt: false })]);
+    expect(d.receipts).toEqual([]);
+  });
+  it('rows without the flag still attach; rows without a receipt never appear', () => {
+    const d = build([time, withRc('a'), exp('b'), exp('c', { attachReceipt: true })]);
+    expect(titles(d)).toEqual(['Ta']);
+  });
+  it('totals and line items are identical regardless of choices', () => {
+    const all = build([time, withRc('a', { attachReceipt: true }), withRc('b', { attachReceipt: true })]);
+    const none = build([time, withRc('a', { attachReceipt: false }), withRc('b', { attachReceipt: false })]);
+    for (const k of ['totalHours', 'totalAmount', 'taxLines', 'taxTotal', 'grandTotal', 'lineItems']) expect(none[k]).toEqual(all[k]);
+  });
+  it('PDF pages = 1 + attached receipts', () => {
+    const rows = (flags) => [time, ...flags.map((f, i) => withRc('r' + i, { attachReceipt: f }))];
+    expect(buildPdfDoc(build(rows([true, true, false]))).getNumberOfPages()).toBe(3);
+    expect(buildPdfDoc(build(rows([false, false]))).getNumberOfPages()).toBe(1);
   });
 });

@@ -66,6 +66,7 @@ describe('step 4: saved invoice totals match the preview (B1)', () => {
       const snap = await state.store.collection('invoices').get();
       expect(snap.docs.length).toBe(1);
     }, WAIT);
+    await vi.waitFor(() => expect($('#invGenerateBtn').textContent).toBe('Generate PDF Invoice'), WAIT);
 
     const snap = await state.store.collection('invoices').get();
     const inv = snap.docs[0].data();

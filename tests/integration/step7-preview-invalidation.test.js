@@ -103,6 +103,7 @@ describe('step 7: preview invalidation (B3)', () => {
     $('#invGenerateBtn').click();
     await vi.waitFor(() => expect(save).toHaveBeenCalledTimes(1), WAIT);
     await vi.waitFor(async () => expect(await invoiceCount()).toBe(1), WAIT);
+    await vi.waitFor(() => expect($('#invGenerateBtn').textContent).toBe('Generate PDF Invoice'), WAIT);
   });
 
   it('(e) a client-list snapshot does not clear the preview', async () => {
