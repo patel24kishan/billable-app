@@ -20,10 +20,31 @@ export function confirmDialog(text){
 }
 
 /* ---------------- edit time entry ---------------- */
+/**
+ * Opens the edit-entry modal. Uses the Track list's copy when loaded; an entry
+ * outside that list's window (filtered month, beyond the newest 200, or opened
+ * from the invoice preview) is read from the store, and the returned promise
+ * settles once it is open.
+ */
 export function openEditEntry(id){
-  var en=state.entries.find(function(x){return x.id===id;}); if(!en) return;
+  var en=state.entries.find(function(x){return x.id===id;});
+  if(en){ fillEditEntry(id, en); return Promise.resolve(); }
+  if(!state.store) return Promise.resolve();
+  return state.store.collection(COLLECTIONS.entries).doc(id).get().then(function(snap){
+    if(snap.exists) fillEditEntry(id, snap.data());
+  }).catch(function(err){ toast('Could not open entry: '+err.message,'error'); });
+}
+function fillEditEntry(id, en){
   $('#editEntryId').value=id; $('#editEntryDate').value=en.date; $('#editEntryHours').value=hoursFromSeconds(en.seconds); $('#editEntryDesc').value=en.description||'';
   $('#editEntryModal').hidden=false;
+}
+
+// 13b-1: listeners run after a successful edit-entry save, with the entry id
+// (same pattern as onExpenseSaved; ui/invoices.js registers here).
+var entrySavedListeners=[];
+export function onEntrySaved(cb){
+  entrySavedListeners.push(cb);
+  return function(){ entrySavedListeners=entrySavedListeners.filter(function(f){ return f!==cb; }); };
 }
 
 /* ---------------- receipt view ---------------- */
@@ -74,7 +95,10 @@ export function bind(){
     if(!hours||hours<=0){ toast('Enter a valid number of hours.','error'); return; }
     if(!$('#editEntryDate').value){ toast('Enter a valid date.','error'); return; }
     state.store.collection(COLLECTIONS.entries).doc(id).update({ date:$('#editEntryDate').value, seconds:Math.round(hours*3600), description:$('#editEntryDesc').value.trim() })
-      .then(function(){ $('#editEntryModal').hidden=true; toast('Entry updated.','success'); })
+      .then(function(){
+        $('#editEntryModal').hidden=true; toast('Entry updated.','success');
+        entrySavedListeners.forEach(function(cb){ cb(id); });
+      })
       .catch(function(err){ toast('Could not update: '+err.message,'error'); });
   });
 

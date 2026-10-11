@@ -66,7 +66,8 @@ const editBtn = (id) => $('#invPreviewBody [data-edit-preview-exp="' + id + '"]'
 const box = (id) => $('#invPreviewBody input[data-attach-receipt="' + id + '"]');
 const boxIds = () => $$('#invPreviewBody input[data-attach-receipt]').map((b) => b.dataset.attachReceipt);
 const tick = (b, v) => { b.checked = v; change(b); };
-const footer = () => $$('#invTotalsFoot tr').map((tr) => tr.lastElementChild.textContent);
+// Amount cell of each footer row (step 13b added an empty actions-column cell after it).
+const footer = () => $$('#invTotalsFoot tr').map((tr) => tr.querySelector('td.amount').textContent);
 const rowTexts = () => $$('#invPreviewBody tr').map((tr) => tr.textContent);
 const toastIs = (text) => vi.waitFor(() => { expect($('#toast').hidden).toBe(false); expect($('#toast').textContent).toBe(text); }, WAIT);
 
@@ -122,13 +123,14 @@ describe('step 9: edit expenses from the invoice preview (D2)', () => {
     await setup();
   });
 
-  it('Edit buttons only on expense rows, labelled with the expense title', async () => {
+  it('expense Edit buttons are on the expense rows, labelled with the expense title', async () => {
     await preview();
     expect(footer()).toEqual(['$95.00', '$12.35', '$107.35']);
     expect(editBtns().map((b) => b.dataset.editPreviewExp)).toEqual([ids.alpha, ids.beta, ids.gamma]);
     const timeRow = $$('#invPreviewBody tr')[0];
     expect(timeRow.textContent).toContain('Task');
-    expect(timeRow.querySelector('button')).toBeNull();
+    // step 13b-1 reversed "time rows have no button": the time row has an entry Edit button, never an expense one
+    expect(timeRow.querySelector('[data-edit-preview-exp]')).toBeNull();
     expect(editBtn(ids.alpha).title).toBe('Edit');
     expect(editBtn(ids.alpha).getAttribute('aria-label')).toContain('Alpha');
   });

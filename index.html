@@ -72,6 +72,37 @@
       </div>
 
       <div class="card">
+        <div class="card-title">Log time by hand</div>
+        <div class="card-sub">Add a past session you forgot to time.</div>
+        <form id="manualForm">
+          <div class="grid-2">
+            <div class="field"><label for="manClient">Client</label><select id="manClient" required></select></div>
+            <div class="field"><label for="manDate">Date</label><input type="date" id="manDate" required></div>
+          </div>
+          <div class="grid-2">
+            <div class="field"><label for="manHours">Hours</label><input type="number" id="manHours" step="any" min="0.01" placeholder="1.5" required></div>
+            <div class="field"><label for="manDesc">Description (optional)</label><input type="text" id="manDesc" placeholder="e.g. Bug fixes"></div>
+          </div>
+          <button class="btn btn-primary" type="submit">Add Entry</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Recent entries</div>
+        <div class="entries-filter">
+          <div class="field"><label for="entriesMonth">Month</label><input type="month" id="entriesMonth"></div>
+          <button class="btn btn-ghost btn-sm" type="button" id="entriesAllMonthsBtn">All months</button>
+          <div class="view-sub" id="entriesMonthSummary" hidden></div>
+        </div>
+        <div class="table-wrap"><table id="entriesTable">
+          <thead><tr><th>Date</th><th>Client</th><th>Description</th><th class="hours">Hours</th><th></th></tr></thead>
+          <tbody id="entriesBody"></tbody>
+        </table></div>
+        <div id="entriesEmpty" class="empty" hidden>No time logged yet — start a timer above or add an entry by hand.</div>
+        <div id="entriesMonthEmpty" class="empty" hidden></div>
+      </div>
+
+      <div class="card">
         <div class="card-title">Log an expense</div>
         <div class="card-sub">One-off billable costs — a subscription, materials, mileage — added to the client's next invoice.</div>
         <form id="expenseForm">
@@ -94,35 +125,10 @@
       <div class="card">
         <div class="card-title">Recent expenses</div>
         <div class="table-wrap"><table>
-          <thead><tr><th>Date</th><th>Client</th><th>Title</th><th>Amount</th><th></th></tr></thead>
+          <thead><tr><th>Date</th><th>Client</th><th>Title</th><th class="amount">Amount</th><th></th></tr></thead>
           <tbody id="expensesBody"></tbody>
         </table></div>
         <div id="expensesEmpty" class="empty" hidden>No expenses logged yet.</div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Log time by hand</div>
-        <div class="card-sub">Add a past session you forgot to time.</div>
-        <form id="manualForm">
-          <div class="grid-2">
-            <div class="field"><label for="manClient">Client</label><select id="manClient" required></select></div>
-            <div class="field"><label for="manDate">Date</label><input type="date" id="manDate" required></div>
-          </div>
-          <div class="grid-2">
-            <div class="field"><label for="manHours">Hours</label><input type="number" id="manHours" step="any" min="0.01" placeholder="1.5" required></div>
-            <div class="field"><label for="manDesc">Description (optional)</label><input type="text" id="manDesc" placeholder="e.g. Bug fixes"></div>
-          </div>
-          <button class="btn btn-primary" type="submit">Add Entry</button>
-        </form>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Recent entries</div>
-        <div class="table-wrap"><table id="entriesTable">
-          <thead><tr><th>Date</th><th>Client</th><th>Description</th><th>Hours</th><th></th></tr></thead>
-          <tbody id="entriesBody"></tbody>
-        </table></div>
-        <div id="entriesEmpty" class="empty" hidden>No time logged yet — start a timer above or add an entry by hand.</div>
       </div>
     </section>
 
@@ -169,7 +175,7 @@
 
         <div id="invPreviewWrap" hidden style="margin-top:18px;">
           <div class="table-wrap"><table>
-            <thead><tr><th>Date</th><th>Description</th><th>Hours</th><th>Amount</th></tr></thead>
+            <thead><tr><th>Date</th><th>Description</th><th class="hours">Hours</th><th class="amount">Amount</th><th class="col-actions"></th></tr></thead>
             <tbody id="invPreviewBody"></tbody>
             <tfoot id="invTotalsFoot"></tfoot>
           </table></div>
@@ -185,7 +191,7 @@
       <div class="card">
         <div class="card-title">Invoice history</div>
         <div class="table-wrap"><table>
-          <thead><tr><th>#</th><th>Client</th><th>Period</th><th>Hours</th><th>Total</th><th></th></tr></thead>
+          <thead><tr><th>#</th><th>Client</th><th>Period</th><th class="hours">Hours</th><th class="amount">Total</th><th></th></tr></thead>
           <tbody id="invoicesBody"></tbody>
         </table></div>
         <div id="invoicesEmpty" class="empty" hidden>Invoices you generate will show up here.</div>

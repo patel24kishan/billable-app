@@ -37,6 +37,9 @@ describe('step 0: app boot characterization', () => {
   const onRejection = (e) => errors.push(e.reason || e);
 
   beforeEach(() => {
+    // Pin the clock to a fixed local midday (it keeps running) so a run that straddles local
+    // midnight or a month end cannot make the date/month assertions below disagree with the app.
+    vi.useFakeTimers({ toFake: ['Date'], now: new Date(2026, 9, 15, 12, 0, 0), shouldAdvanceTime: true });
     globalThis.indexedDB = new IDBFactory();
     document.documentElement.innerHTML = html.replace(/<script[\s\S]*?<\/script>/gi, '');
     errors = [];
@@ -59,6 +62,7 @@ describe('step 0: app boot characterization', () => {
     window.removeEventListener('error', onError);
     window.removeEventListener('unhandledrejection', onRejection);
     vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
   const lastToast = () => $('#toast').textContent;

@@ -5,7 +5,7 @@ import { confirmDialog, openEditEntry, openEditExpense, openReceiptView } from '
 import { state } from '../state.js';
 import { COLLECTIONS, DOCS } from '../lib/schema.js';
 import { fileToCompressedDataUrl, hasReceipt, receiptFields } from '../lib/receipts.js';
-import { todayStr, fmtDateShort, fmtDuration, hoursFromSeconds } from '../domain/dates.js';
+import { todayStr, fmtDateShort, fmtDuration, hoursFromSeconds, monthRange, monthLabel } from '../domain/dates.js';
 import { money } from '../domain/money.js';
 import { IDLE_TIMER, TIMER_LABELS, sessionElapsedSeconds, startTimer, pauseTimer, resumeTimer, stopTimer, entryFromStoppedTimer } from '../domain/timer.js';
 
@@ -84,17 +84,56 @@ export function subscribeTimer(){
 }
 
 /* ---------------- recent entries ---------------- */
+// 13b-4: the Recent entries month filter ('YYYY-MM', or null = all months, the newest 200).
+// A view filter only, local to this screen; it resets on reload.
+var entriesMonth=null;
+
 export function subscribeEntries(){
-  if(entriesUnsub) entriesUnsub();
-  entriesUnsub = state.store.collection(COLLECTIONS.entries).orderBy('date','desc').orderBy('createdAt','desc').limit(200).onSnapshot(function(snap){
+  if(entriesUnsub){ entriesUnsub(); entriesUnsub=null; }
+  if(!state.store) return;
+  var q=state.store.collection(COLLECTIONS.entries);
+  if(entriesMonth){
+    var range=monthRange(entriesMonth);
+    q=q.where('date','>=',range.start).where('date','<=',range.end).orderBy('date','desc').orderBy('createdAt','desc');
+  } else {
+    q=q.orderBy('date','desc').orderBy('createdAt','desc').limit(200);
+  }
+  entriesUnsub = q.onSnapshot(function(snap){
     state.entries = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
     renderEntries();
   }, function(err){ toast('Time log error: '+err.message,'error'); });
 }
+
+/** Sets the Recent entries month filter ('YYYY-MM', or '' / null for all months) and re-queries. */
+export function setEntriesMonth(month){
+  entriesMonth=month||null;
+  $('#entriesMonth').value=entriesMonth||'';
+  subscribeEntries();
+  if(!state.store) renderEntriesFilter();
+}
+
+function renderEntriesFilter(){
+  var summary=$('#entriesMonthSummary');
+  $('#entriesAllMonthsBtn').disabled=!entriesMonth;
+  if(!entriesMonth){ summary.hidden=true; summary.textContent=''; return; }
+  var total=state.entries.reduce(function(sum, e){ return sum+hoursFromSeconds(e.seconds); }, 0);
+  summary.textContent=monthLabel(entriesMonth)+' · '+(Math.round(total*100)/100).toFixed(2)+'h';
+  summary.hidden=false;
+}
+
 function renderEntries(){
   var body=$('#entriesBody');
-  if(!state.entries.length){ body.innerHTML=''; $('#entriesEmpty').hidden=false; return; }
+  renderEntriesFilter();
+  var monthEmpty=$('#entriesMonthEmpty');
+  if(!state.entries.length){
+    body.innerHTML='';
+    $('#entriesEmpty').hidden=!!entriesMonth;
+    monthEmpty.hidden=!entriesMonth;
+    monthEmpty.textContent=entriesMonth?'No time logged in '+monthLabel(entriesMonth)+'.':'';
+    return;
+  }
   $('#entriesEmpty').hidden=true;
+  monthEmpty.hidden=true;
   body.innerHTML = state.entries.map(function(e){
     return '<tr><td>'+fmtDateShort(e.date)+'</td><td>'+esc(e.clientName)+'</td><td>'+(e.description?esc(e.description):'<span style="color:var(--text-faint);">No description</span>')+
       (e.invoiced?' <span class="pill pill-success" style="margin-left:6px;">Invoiced</span>':'')+
@@ -180,6 +219,9 @@ export function bind(){
   });
 
   /* recent entries */
+  $('#entriesAllMonthsBtn').disabled=true;
+  $('#entriesMonth').addEventListener('change', function(){ setEntriesMonth($('#entriesMonth').value); });
+  $('#entriesAllMonthsBtn').addEventListener('click', function(){ setEntriesMonth(null); });
   $('#entriesBody').addEventListener('click',function(e){
     var btn=e.target.closest('button'); if(!btn) return;
     if(btn.dataset.delEntry){
