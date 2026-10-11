@@ -117,6 +117,12 @@ export function bind(){
     }).catch(function(err){ toast('Could not load entries: '+err.message,'error'); });
   });
 
+  // B3: changing any selector invalidates the on-screen preview. Only user
+  // `change` events fire these; programmatic option/value updates do not.
+  ['#invMonth','#invClient','#invIncludeBilled'].forEach(function(sel){
+    $(sel).addEventListener('change', clearInvoicePreview);
+  });
+
   $('#invGenerateBtn').addEventListener('click', function(){ generateInvoicePdf(); });
 
   $('#invoicesBody').addEventListener('click', function(e){
