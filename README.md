@@ -62,6 +62,63 @@ src/lib/localDb.js      — IndexedDB-backed local "database" client
 src/lib/downloads.js    — browser file-download helper
 ```
 
+## Desktop app (Windows)
+
+The same app also ships as a Windows desktop app (Electron). It runs fully offline, keeps its data on your computer, and has no account, no sync and no auto-update.
+
+### Run it in development
+
+```bash
+npm install
+npm run electron:dev     # vite build, then opens the app window (electron .)
+```
+
+`npm run electron:start` opens the window on the existing `dist/` build without rebuilding.
+
+### Build the installer
+
+```bash
+npm run dist             # vite build + electron-builder (NSIS, Windows x64)
+```
+
+Output in `release/`:
+
+- `Billable-Setup-1.0.0.exe` — the installer (about 90 MB). This is the file to give to users.
+- `win-unpacked/Billable.exe` — the unpacked app, for testing without installing.
+- `Billable-Setup-1.0.0.exe.blockmap`, `builder-debug.yml` — build by-products; not needed for installing.
+
+electron-builder downloads the Electron runtime and the NSIS tools from GitHub on the first build (cached in `%LOCALAPPDATA%\electron-builder\Cache`), so the first `npm run dist` needs network access. The packaged app contains only `dist/` (without source maps), `electron/` and `package.json`.
+
+### Install
+
+1. Run `Billable-Setup-1.0.0.exe`.
+2. **Windows SmartScreen:** the installer is not code-signed, so Windows may show "Windows protected your PC". Click **More info**, then **Run anyway**. (Only do this for an installer you built yourself or got from a source you trust.)
+3. Choose **Only for me** (the default; no administrator rights needed). "Anyone who uses this computer" is also offered but asks for administrator rights.
+4. Pick the install folder (default for "Only for me": `%LOCALAPPDATA%\Programs\Billable`) and finish. The installer creates a desktop shortcut and a Start-menu entry named **Billable**.
+
+### Where your data lives
+
+The desktop app stores its data (IndexedDB) in Electron's user-data folder: **`%APPDATA%\billable`** (for example `C:\Users\<you>\AppData\Roaming\billable`). The folder is named after the package `name` (`billable`); Windows paths are not case-sensitive, so `%APPDATA%\Billable` is the same folder. This data is separate from the browser version's data; nothing is migrated between them. Saved invoice PDFs go wherever you choose in the save dialog (default: your Downloads folder).
+
+### Uninstall
+
+Open **Settings → Apps → Installed apps**, find **Billable**, and choose **Uninstall** (or run "Uninstall Billable.exe" in the install folder). The uninstaller removes the program files and the shortcuts but **keeps your data** in `%APPDATA%\billable` (`deleteAppDataOnUninstall` is deliberately off), so reinstalling brings your clients, entries and invoices back. To erase the data too, delete that folder by hand after uninstalling. Invoice PDFs you saved are never touched.
+
+### Smoke test
+
+```bash
+npm run smoke                                              # dev layout: vite build, then electron . with BILLABLE_SMOKE=1
+node scripts/smoke.mjs release/win-unpacked/Billable.exe   # the packaged app (after npm run dist)
+```
+
+The smoke run uses a fresh temporary user-data folder (the app refuses any folder outside the temp folder), adds a client, generates an invoice, saves the PDF into that temp folder, prints `SMOKE OK` and exits 0. Stack traces mentioning "Invalid save request" on stderr are expected (the smoke sends deliberately bad save requests).
+
+### Notes
+
+- **Placeholder icon:** `build/icon.png` (a blue tile with a white "B") is a placeholder made by `npm run icon` (`scripts/make-icon.mjs`, no dependencies). Replace it with a real logo (PNG, at least 512x512) before a public release; electron-builder converts it to the Windows `.ico`. Re-running the generator overwrites a replaced icon.
+- **No auto-update:** publishing is disabled (`"publish": null`); to update, build a newer installer and run it over the old install (your data is kept).
+- **Node 24 and the `electron` package:** on Node 24 the `electron` package's install step can finish without unpacking the runtime (`extract-zip` fails silently), and then `npm run electron:dev` / `npm run smoke` fail with "Electron failed to install correctly". Workaround: take the zip the install downloaded into `%LOCALAPPDATA%\electron\Cache`, check its SHA-256 against `node_modules/electron/checksums.json`, extract it into `node_modules/electron/dist`, and make sure `node_modules/electron/path.txt` contains `electron.exe`. `npm run dist` is not affected: electron-builder downloads and unpacks its own copy of Electron.
+
 ## License
 
 MIT — see [LICENSE](./LICENSE).

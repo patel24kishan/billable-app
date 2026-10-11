@@ -160,6 +160,15 @@ function applySessionPolicy() {
   ses.setPermissionCheckHandler(() => false);
 }
 
+// Window/taskbar icon. Packaged: Windows uses the icon electron-builder embeds in
+// Billable.exe (from build/icon.png), so nothing is set. Dev (`electron .`): the
+// repo's build/icon.png, which is not shipped inside the asar.
+function windowIcon() {
+  if (app.isPackaged) return undefined;
+  const devIcon = path.join(here, '..', 'build', 'icon.png');
+  return fs.existsSync(devIcon) ? devIcon : undefined;
+}
+
 function createWindow() {
   const problems = [];
   mainWindow = new BrowserWindow({
@@ -168,6 +177,7 @@ function createWindow() {
     minWidth: 900,
     minHeight: 600,
     title: 'Billable',
+    icon: windowIcon(),
     show: false,
     backgroundColor: nativeTheme.shouldUseDarkColors ? '#12141A' : '#F3F4F7',
     autoHideMenuBar: false,
