@@ -41,6 +41,12 @@ export function renderInvoicePreview(){
   $('#invTaxJurisdiction').textContent='Tax jurisdiction: '+jurisdiction;
 }
 
+// Drop the on-screen preview and its state (shared by generate success, B3, D2).
+export function clearInvoicePreview(){
+  state.invPreviewRows=null; state.invPreviewMeta=null;
+  var wrap=$('#invPreviewWrap'); if(wrap) wrap.hidden=true;
+}
+
 function generateInvoicePdf(){
   if(!state.invPreviewRows || !state.invPreviewMeta) return;
   if(!state.downloads){ toast('Downloads aren\'t available in this view.','error'); return; }
@@ -60,6 +66,8 @@ function generateInvoicePdf(){
     var entryIds=timeRows.map(function(r){return r.id;});
     var expenseIds=expenseRows.map(function(r){return r.id;});
     return recordInvoice(state.store, { invoiceDoc:invoiceDoc, entryIds:entryIds, expenseIds:expenseIds, clientId:state.invPreviewMeta.clientId, clientName:client?client.name:'' });
+  }).then(function(){
+    clearInvoicePreview();
   }).catch(function(err){
     if(err && err.code==='declined'){ toast('Invoice download was declined — nothing was recorded.'); }
     else { toast('Could not save invoice: '+(err&&err.message?err.message:'unknown error'),'error'); }
