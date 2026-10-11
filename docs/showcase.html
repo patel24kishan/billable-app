@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Billable screenshots</title>
+<meta name="description" content="Screenshot tour of the Billable time tracking and invoicing app, using fictional demo data.">
+<style>
+:root{
+  --bg:#f3f5fb; --surface:#ffffff; --text:#151a2d; --muted:#5a6280; --border:#d9deee;
+  --accent:#3452E1; --accent-ink:#ffffff; --stage:#e6eaf7; --shadow:0 10px 30px rgba(21,26,45,.12); --dot:#b9c0d8;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#0e1220; --surface:#171c2f; --text:#eef0fa; --muted:#a3abc8; --border:#2b3350; --accent:#6f87ff; --accent-ink:#0e1220; --stage:#10152a; --shadow:0 10px 30px rgba(0,0,0,.45); --dot:#5b6585; }
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg); color:var(--text); font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; min-height:100vh}
+.wrap{max-width:1100px; margin:0 auto; padding:24px 16px 40px}
+header{display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:8px 16px; margin-bottom:16px}
+h1{font-size:1.5rem; margin:0}
+.sub{color:var(--muted); font-size:.95rem; margin:0}
+.carousel{background:var(--surface); border:2px solid var(--accent); border-radius:18px; box-shadow:var(--shadow); overflow:hidden}
+.carousel:focus-visible{outline:3px solid var(--accent); outline-offset:3px}
+.stage{position:relative; background:var(--stage); aspect-ratio:16/10; touch-action:pan-y; user-select:none}
+.slide{position:absolute; inset:0; margin:0; display:flex; align-items:center; justify-content:center; opacity:0; visibility:hidden; transition:opacity .5s ease, visibility 0s linear .5s}
+.slide.active{opacity:1; visibility:visible; transition:opacity .5s ease}
+.slide img{width:100%; height:100%; display:block; object-fit:contain}
+.nav-btn{position:absolute; top:50%; transform:translateY(-50%); width:48px; height:48px; border-radius:50%; border:1px solid var(--border); background:var(--surface); color:var(--text); cursor:pointer; display:grid; place-items:center; font-size:22px; line-height:1; box-shadow:var(--shadow); opacity:.92}
+.nav-btn:hover{background:var(--accent); color:var(--accent-ink); border-color:var(--accent); opacity:1}
+.nav-btn:focus-visible,.play:focus-visible,.dot:focus-visible,.thumb:focus-visible{outline:3px solid var(--accent); outline-offset:2px}
+.prev{left:12px} .next{right:12px}
+.info{display:flex; flex-wrap:wrap; align-items:center; gap:12px 16px; padding:14px 18px; border-top:1px solid var(--border)}
+.text{flex:1 1 320px; min-width:0}
+.text h2{font-size:1.15rem; margin:0 0 2px}
+.text p{margin:0; color:var(--muted); font-size:.95rem}
+.controls{display:flex; align-items:center; gap:14px; margin-left:auto}
+.play{border:1px solid var(--border); background:var(--surface); color:var(--text); border-radius:999px; padding:8px 14px; font:inherit; font-size:.9rem; cursor:pointer; min-height:40px}
+.play:hover{border-color:var(--accent)}
+.counter{color:var(--muted); font-size:.9rem; font-variant-numeric:tabular-nums; min-width:3.2em; text-align:right}
+.dots{display:flex; gap:2px}
+.dot{width:28px; height:28px; border:0; background:none; padding:0; cursor:pointer; display:grid; place-items:center; border-radius:50%}
+.dot::before{content:""; width:10px; height:10px; border-radius:50%; background:var(--dot); transition:background .2s, transform .2s}
+.dot:hover::before{background:var(--muted)}
+.dot[aria-current="true"]::before{background:var(--accent); transform:scale(1.35)}
+.progress{height:3px; background:transparent}
+.progress i{display:block; height:100%; width:0; background:var(--accent)}
+.thumbs{display:flex; gap:10px; overflow-x:auto; padding:14px 4px 6px; margin-top:12px; scroll-snap-type:x proximity}
+.thumb{flex:0 0 auto; width:132px; padding:0; border:2px solid var(--border); border-radius:10px; background:var(--surface); cursor:pointer; overflow:hidden; scroll-snap-align:start; opacity:.75}
+.thumb img{display:block; width:100%; height:82px; object-fit:cover; object-position:top left}
+.thumb[aria-current="true"]{border-color:var(--accent); opacity:1}
+.thumb:hover{opacity:1}
+.thumb span{display:block; font-size:.72rem; padding:4px 6px; color:var(--muted); text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.hint{color:var(--muted); font-size:.85rem; margin:14px 0 0}
+.sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
+noscript{display:block; margin-top:12px}
+@media (max-width:640px){
+  .nav-btn{width:40px; height:40px; font-size:18px}
+  .prev{left:6px} .next{right:6px}
+  .thumb{width:104px} .thumb img{height:64px}
+  .controls{margin-left:0; width:100%; justify-content:space-between}
+  .dots{flex-wrap:wrap}
+}
+@media (prefers-reduced-motion: reduce){
+  .slide,.slide.active{transition:none}
+  .dot::before{transition:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Billable: screenshot tour</h1>
+    <p class="sub">Fictional demo data only (Demo Studio, Northwind Studio, Acme Robotics).</p>
+  </header>
+
+  <section class="carousel" id="carousel" role="region" aria-roledescription="carousel" aria-label="Billable screenshots" tabindex="0">
+    <div class="stage" id="stage">
+      <button class="nav-btn prev" id="prev" type="button" aria-label="Previous slide">&#8249;</button>
+      <button class="nav-btn next" id="next" type="button" aria-label="Next slide">&#8250;</button>
+    </div>
+    <div class="progress" aria-hidden="true"><i id="bar"></i></div>
+    <div class="info">
+      <div class="text">
+        <h2 id="title"></h2>
+        <p id="desc"></p>
+      </div>
+      <div class="controls">
+        <button class="play" id="play" type="button" aria-pressed="false">Pause</button>
+        <div class="dots" id="dots" role="group" aria-label="Choose slide"></div>
+        <div class="counter" id="counter" aria-hidden="true"></div>
+      </div>
+    </div>
+    <div class="sr" id="live" aria-live="polite" aria-atomic="true"></div>
+  </section>
+
+  <div class="thumbs" id="thumbs" role="group" aria-label="Slide thumbnails"></div>
+  <p class="hint">Use the arrow keys (left and right, Home and End) while the carousel is focused, or swipe on a touch screen. Autoplay pauses while you hover or focus the carousel.</p>
+  <noscript><p class="hint">This page needs JavaScript for the carousel. The images are in the screenshots folder.</p></noscript>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var SLIDES=[
+    {src:'screenshots/01-track-time.jpg', title:'Track Time', alt:'Track Time screen with the client picker, a Start Timer button and the form to log time by hand',
+     desc:'Pick a client, optionally describe the work, and start the timer, or log a past session by hand with a date, hours and description.'},
+    {src:'screenshots/02-timer-running.jpg', title:'A running timer', alt:'A running timer showing 00:00:02 for Northwind Studio with Pause and Stop buttons',
+     desc:'The timer shows the elapsed time for the client and description. Pause, resume or stop it, then save the session as a time entry.'},
+    {src:'screenshots/03-recent-entries.jpg', title:'Recent entries and the month filter', alt:'Recent entries table filtered to October 2026 with a monthly total of 11.25 hours',
+     desc:'Filter recent entries by month and see that month’s total hours. Edit or delete any entry.'},
+    {src:'screenshots/04-expenses.jpg', title:'Log expenses with receipts', alt:'The Log an expense form above a list of recent expenses, two of them with a receipt paperclip',
+     desc:'Add one-off billable costs, optionally with a JPEG or PNG receipt. A paperclip in the list opens the receipt.'},
+    {src:'screenshots/05-clients.jpg', title:'Clients', alt:'Clients screen listing Acme Robotics and Northwind Studio with Edit and Archive buttons',
+     desc:'Keep each client’s name, email and billing address. Edit, archive or delete clients.'},
+    {src:'screenshots/06-invoice-preview.jpg', title:'Invoice preview', alt:'Invoice preview for Northwind Studio, October 2026, with Edit buttons, receipt checkboxes, HST and total',
+     desc:'Preview a client’s month: time and expenses, subtotal, itemized sales tax and total. Choose per expense whether its receipt is attached, and edit any row.'},
+    {src:'screenshots/09-edit-dialog.jpg', title:'Edit from the preview', alt:'The Edit expense dialog open over the invoice preview, showing the current receipt thumbnail',
+     desc:'Fix a title, amount, date or receipt without leaving the preview. The preview reloads when you save.'},
+    {src:'screenshots/10-invoice-preview-dark.jpg', title:'Dark theme', alt:'The invoice preview in the dark theme',
+     desc:'The interface follows your system light or dark setting.'},
+    {src:'screenshots/07-invoice-history.jpg', title:'Invoice history', alt:'Invoice history table with two September 2026 invoices and Re-download buttons',
+     desc:'Every generated invoice is recorded with its number, period, hours and total. Re-download its PDF at any time.'},
+    {src:'screenshots/08-settings.jpg', title:'Settings and sales tax', alt:'Settings screen with the hourly rate, Canada and Ontario sales tax selected, and business details',
+     desc:'Set your rate, currency and next invoice number. Canadian provinces fill in the right tax rates; elsewhere enter your own. Business details appear on every invoice.'},
+    {src:'screenshots/11-pdf-invoice.jpg', title:'The generated PDF', alt:'Page one of a generated PDF invoice with itemized lines, HST and the total due',
+     desc:'The PDF has the itemized lines, tax and total. Receipts you chose to attach follow on their own pages.'}
+  ];
+  var INTERVAL=5000;
+  var reduce=window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var stage=document.getElementById('stage'), carousel=document.getElementById('carousel');
+  var titleEl=document.getElementById('title'), descEl=document.getElementById('desc');
+  var dotsEl=document.getElementById('dots'), thumbsEl=document.getElementById('thumbs');
+  var counter=document.getElementById('counter'), live=document.getElementById('live');
+  var playBtn=document.getElementById('play'), bar=document.getElementById('bar');
+  var slideEls=[], dotEls=[], thumbEls=[];
+  var index=0, userPaused=reduce, hover=false, focusIn=false, timer=null, startedAt=0, raf=null;
+
+  SLIDES.forEach(function(s,i){
+    var fig=document.createElement('figure'); fig.className='slide'; fig.setAttribute('role','group');
+    fig.setAttribute('aria-roledescription','slide'); fig.setAttribute('aria-label',(i+1)+' of '+SLIDES.length+': '+s.title);
+    var img=document.createElement('img'); img.src=s.src; img.alt=s.alt; img.decoding='async';
+    if(i>0) img.loading='lazy';
+    fig.appendChild(img); stage.insertBefore(fig,document.getElementById('prev')); slideEls.push(fig);
+
+    var d=document.createElement('button'); d.type='button'; d.className='dot';
+    d.setAttribute('aria-label','Go to slide '+(i+1)+': '+s.title); d.addEventListener('click',function(){ go(i,true); });
+    dotsEl.appendChild(d); dotEls.push(d);
+
+    var t=document.createElement('button'); t.type='button'; t.className='thumb';
+    t.setAttribute('aria-label','Show slide '+(i+1)+': '+s.title);
+    var ti=document.createElement('img'); ti.src=s.src; ti.alt=''; ti.loading='lazy';
+    var tl=document.createElement('span'); tl.textContent=s.title;
+    t.appendChild(ti); t.appendChild(tl); t.addEventListener('click',function(){ go(i,true); });
+    thumbsEl.appendChild(t); thumbEls.push(t);
+  });
+
+  function render(announce){
+    slideEls.forEach(function(el,i){
+      var on=i===index; el.classList.toggle('active',on); el.setAttribute('aria-hidden',on?'false':'true');
+      if(on) el.removeAttribute('inert'); else el.setAttribute('inert','');
+      dotEls[i].setAttribute('aria-current',on?'true':'false');
+      thumbEls[i].setAttribute('aria-current',on?'true':'false');
+    });
+    titleEl.textContent=SLIDES[index].title; descEl.textContent=SLIDES[index].desc;
+    counter.textContent=(index+1)+' / '+SLIDES.length;
+    if(announce) live.textContent='Slide '+(index+1)+' of '+SLIDES.length+': '+SLIDES[index].title;
+    var th=thumbEls[index];
+    if(th && thumbsEl.scrollWidth>thumbsEl.clientWidth){
+      var l=th.offsetLeft-thumbsEl.offsetLeft, r=l+th.offsetWidth;
+      if(l<thumbsEl.scrollLeft) thumbsEl.scrollLeft=l-8;
+      else if(r>thumbsEl.scrollLeft+thumbsEl.clientWidth) thumbsEl.scrollLeft=r-thumbsEl.clientWidth+8;
+    }
+  }
+  function go(i,manual){
+    index=(i+SLIDES.length)%SLIDES.length; render(!!manual); restart();
+  }
+  function next(manual){ go(index+1,manual); }
+  function prev(manual){ go(index-1,manual); }
+
+  function running(){ return !userPaused && !hover && !focusIn && !document.hidden; }
+  function frame(now){
+    raf=null; if(!running()){ return; }
+    var p=Math.min(1,(now-startedAt)/INTERVAL); bar.style.width=(p*100)+'%';
+    if(p>=1){ next(false); return; }
+    raf=requestAnimationFrame(frame);
+  }
+  function restart(){
+    if(raf){ cancelAnimationFrame(raf); raf=null; }
+    bar.style.width='0';
+    if(running()){ startedAt=performance.now(); raf=requestAnimationFrame(frame); }
+  }
+  function updatePlayUi(){
+    playBtn.textContent=userPaused?'Play':'Pause';
+    playBtn.setAttribute('aria-pressed',userPaused?'true':'false');
+    playBtn.setAttribute('aria-label',userPaused?'Start automatic slide show':'Pause automatic slide show');
+  }
+
+  document.getElementById('prev').addEventListener('click',function(){ prev(true); });
+  document.getElementById('next').addEventListener('click',function(){ next(true); });
+  playBtn.addEventListener('click',function(){ userPaused=!userPaused; updatePlayUi(); restart(); });
+  carousel.addEventListener('mouseenter',function(){ hover=true; restart(); });
+  carousel.addEventListener('mouseleave',function(){ hover=false; restart(); });
+  carousel.addEventListener('focusin',function(){ focusIn=true; restart(); });
+  carousel.addEventListener('focusout',function(e){ if(!carousel.contains(e.relatedTarget)){ focusIn=false; restart(); } });
+  document.addEventListener('visibilitychange',restart);
+
+  // Keyboard: arrows work when focus is on the carousel or anywhere on the page body.
+  document.addEventListener('keydown',function(e){
+    if(e.altKey||e.ctrlKey||e.metaKey) return;
+    var tag=(e.target && e.target.tagName)||'';
+    if(/^(INPUT|TEXTAREA|SELECT)$/.test(tag)) return;
+    if(e.key==='ArrowRight'){ next(true); e.preventDefault(); }
+    else if(e.key==='ArrowLeft'){ prev(true); e.preventDefault(); }
+    else if(e.key==='Home'){ go(0,true); e.preventDefault(); }
+    else if(e.key==='End'){ go(SLIDES.length-1,true); e.preventDefault(); }
+  });
+
+  // Swipe on touch screens.
+  var sx=null, sy=null;
+  stage.addEventListener('touchstart',function(e){ var t=e.changedTouches[0]; sx=t.clientX; sy=t.clientY; },{passive:true});
+  stage.addEventListener('touchend',function(e){
+    if(sx===null) return; var t=e.changedTouches[0], dx=t.clientX-sx, dy=t.clientY-sy; sx=sy=null;
+    if(Math.abs(dx)>40 && Math.abs(dx)>Math.abs(dy)*1.5){ if(dx<0) next(true); else prev(true); }
+  },{passive:true});
+
+  updatePlayUi(); render(false); restart();
+})();
+</script>
+</body>
+</html>
