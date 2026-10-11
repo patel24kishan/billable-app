@@ -25,7 +25,8 @@ export function buildPdfDoc(invoiceDoc){
     doc.text(line, pageWidth-margin, y, {align:'right'}); y+=13;
   });
 
-  var billY=140;
+  // B6: the BILL TO block flows below the business details, so a long business address cannot run into it.
+  var billY=Math.max(140, y+20);
   doc.setDrawColor(225); doc.line(margin,billY-14,pageWidth-margin,billY-14);
   doc.setTextColor(30); doc.setFont('helvetica','bold'); doc.setFontSize(10);
   doc.text('BILL TO', margin, billY);
@@ -41,11 +42,16 @@ export function buildPdfDoc(invoiceDoc){
     return [fmtDateShort(li.date), (li.description||'—')+(li.type==='expense'?'  (expense)':''), li.type==='expense'?'—':li.hours.toFixed(2), invoiceDoc.currency+li.amount.toFixed(2)];
   });
   var grandTotalDisplay = (invoiceDoc.grandTotal!=null ? invoiceDoc.grandTotal : invoiceDoc.totalAmount);
-  var footRows=[['', '', 'Subtotal', invoiceDoc.currency+invoiceDoc.totalAmount.toFixed(2)]];
+  // B5: each foot label spans the first three columns (right-aligned), so tax labels such as
+  // "QST (9.975%)" stay on one line instead of wrapping inside the 60 pt Hours column.
+  function footRow(label, amount){
+    return [{content:label, colSpan:3, styles:{halign:'right'}}, {content:amount, styles:{halign:'right'}}];
+  }
+  var footRows=[footRow('Subtotal', invoiceDoc.currency+invoiceDoc.totalAmount.toFixed(2))];
   (invoiceDoc.taxLines||[]).forEach(function(t){
-    footRows.push(['', '', t.label+' ('+formatRatePct(t.rate)+'%)', invoiceDoc.currency+t.amount.toFixed(2)]);
+    footRows.push(footRow(t.label+' ('+formatRatePct(t.rate)+'%)', invoiceDoc.currency+t.amount.toFixed(2)));
   });
-  footRows.push(['', '', 'Total due', invoiceDoc.currency+grandTotalDisplay.toFixed(2)]);
+  footRows.push(footRow('Total due', invoiceDoc.currency+grandTotalDisplay.toFixed(2)));
   doc.autoTable({
     startY: Math.max(y2,billY+40)+16,
     margin:{left:margin,right:margin},
@@ -55,6 +61,7 @@ export function buildPdfDoc(invoiceDoc){
     headStyles:{ fillColor:[52,82,225], textColor:255, fontStyle:'bold' },
     columnStyles:{ 2:{halign:'right',cellWidth:60}, 3:{halign:'right',cellWidth:80} },
     foot: footRows,
+    showFoot: 'lastPage', // B4: totals once, at the end of the table (the default repeats them on every page)
     footStyles:{ fillColor:[247,248,250], textColor:20, fontStyle:'bold' },
     didParseCell: function(data){
       // Only the very last foot row ("Total due") should read as the bold grand total; the rest are plain.
@@ -62,13 +69,26 @@ export function buildPdfDoc(invoiceDoc){
     }
   });
 
+  // B4: keep the rate line and the notes inside the page. If the block does not fit below the table,
+  // it starts on a new page (unless it would not fit on a fresh page either, then it starts here),
+  // and the notes continue onto further pages line by line.
+  var pageBottom = doc.internal.pageSize.getHeight() - margin;
   var finalY = doc.lastAutoTable.finalY + 26;
   doc.setFontSize(9); doc.setTextColor(90); doc.setFont('helvetica','normal');
-  doc.text('Rate: '+invoiceDoc.currency+invoiceDoc.rate.toFixed(2)+' / hour  ·  Total hours: '+invoiceDoc.totalHours.toFixed(2), margin, finalY);
-  if(invoiceDoc.notes){
-    var notesLines=doc.splitTextToSize(invoiceDoc.notes, pageWidth-margin*2);
-    doc.text(notesLines, margin, finalY+20);
+  var notesLines = invoiceDoc.notes ? doc.splitTextToSize(invoiceDoc.notes, pageWidth-margin*2) : [];
+  var lineH = doc.getFontSize()*doc.getLineHeightFactor();
+  var blockH = notesLines.length ? 20 + (notesLines.length-1)*lineH : 0;
+  if(finalY + blockH > pageBottom && (finalY > pageBottom || margin + blockH <= pageBottom)){
+    doc.addPage();
+    finalY = margin;
   }
+  doc.text('Rate: '+invoiceDoc.currency+invoiceDoc.rate.toFixed(2)+' / hour  ·  Total hours: '+invoiceDoc.totalHours.toFixed(2), margin, finalY);
+  var ny = finalY + 20;
+  notesLines.forEach(function(line){
+    if(ny > pageBottom){ doc.addPage(); ny = margin; }
+    doc.text(line, margin, ny);
+    ny += lineH;
+  });
 
   // Receipts: one per page, appended after the invoice itself, so the PDF doubles as its own expense-backup packet.
   (invoiceDoc.receipts||[]).forEach(function(r){
