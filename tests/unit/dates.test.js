@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { todayStr, currentMonthStr, monthRange, fmtDuration, hoursFromSeconds, fmtDateShort, monthLabel } from '../../src/domain/dates.js';
 
 describe('todayStr / currentMonthStr', () => {
@@ -40,9 +40,18 @@ describe('hoursFromSeconds', () => {
   });
 });
 
-describe('fmtDateShort / monthLabel', () => {
-  it('match the locale formatting of the local date', () => {
-    expect(fmtDateShort('2026-10-09')).toBe(new Date(2026, 9, 9).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }));
-    expect(monthLabel('2026-10')).toBe(new Date(2026, 9, 1).toLocaleDateString(undefined, { month: 'long', year: 'numeric' }));
+describe('fmtDateShort / monthLabel (en-US pinned, step 12 / B7)', () => {
+  it('format the local calendar date as en-US regardless of the host locale or TZ', () => {
+    expect(fmtDateShort('2026-10-09')).toBe('Oct 9, 2026');
+    expect(fmtDateShort('2026-01-01')).toBe('Jan 1, 2026');
+    expect(fmtDateShort('2026-12-31')).toBe('Dec 31, 2026');
+    expect(monthLabel('2026-10')).toBe('October 2026');
+    expect(monthLabel('2027-01')).toBe('January 2027');
+  });
+  it('asks Intl for the en-US locale explicitly (not the host default)', () => {
+    const spy = vi.spyOn(Date.prototype, 'toLocaleDateString');
+    fmtDateShort('2026-10-09'); monthLabel('2026-10');
+    expect(spy.mock.calls.map((c) => c[0])).toEqual(['en-US', 'en-US']);
+    spy.mockRestore();
   });
 });

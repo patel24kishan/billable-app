@@ -146,7 +146,7 @@ function renderInvoices(){
 
 export function subscribe(){
   if(invoicesUnsub) invoicesUnsub();
-  invoicesUnsub = state.store.collection(COLLECTIONS.invoices).orderBy('generatedAt','desc').limit(100).onSnapshot(function(snap){
+  invoicesUnsub = state.store.collection(COLLECTIONS.invoices).orderBy('generatedAt','desc').limit(200).onSnapshot(function(snap){
     state.invoices = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
     renderInvoices();
   }, function(err){ toast('Invoice history error: '+err.message,'error'); });

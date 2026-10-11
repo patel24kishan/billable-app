@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { round2, money } from '../../src/domain/money.js';
 
 // Assumes Node's default en-US ICU locale; all values stay under 1000 (no grouping separators).
@@ -22,5 +22,16 @@ describe('money', () => {
   });
   it('rounds before formatting', () => {
     expect(money(0.1 + 0.2, '$')).toBe('$0.30');
+  });
+  it('pins en-US grouping and two decimals (step 12 / B7)', () => {
+    expect(money(1234.5, '$')).toBe('$1,234.50');
+    expect(money(1234567.891, '€')).toBe('€1,234,567.89');
+    expect(money(0, '$')).toBe('$0.00');
+  });
+  it('asks Intl for the en-US locale explicitly (not the host default)', () => {
+    const spy = vi.spyOn(Number.prototype, 'toLocaleString');
+    money(1234.5, '$');
+    expect(spy.mock.calls[0][0]).toBe('en-US');
+    spy.mockRestore();
   });
 });

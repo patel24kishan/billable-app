@@ -11,6 +11,7 @@ import { IDLE_TIMER, TIMER_LABELS, sessionElapsedSeconds, startTimer, pauseTimer
 
 var timerTickHandle=null;
 var descEditing=false; // true while the user has focus in the active-session description box, so live sync doesn't clobber their typing
+var baseTitle=null; // the page title before a timer session changed it
 var entriesUnsub=null;
 var expensesUnsub=null;
 
@@ -23,6 +24,7 @@ export function renderTimer(){
   document.querySelector('.nav-item[data-view="track"]').classList.toggle('has-live', active);
   if(!active){
     if(timerTickHandle){ clearInterval(timerTickHandle); timerTickHandle=null; }
+    if(baseTitle!==null){ document.title=baseTitle; baseTitle=null; }
     return;
   }
   var labels=TIMER_LABELS;
@@ -52,6 +54,11 @@ function tickTimer(){
   var d=fmtDuration(sessionElapsedSeconds(state.timer));
   $('#timerDisplay').textContent=d;
   $('#railElapsed').textContent=d;
+  var st=state.timer.status;
+  if(st!=='idle'){
+    if(baseTitle===null) baseTitle=document.title;
+    document.title=(st==='running'?'▶':st==='paused'?'⏸':'■')+' '+d+' — '+(state.timer.clientName||'—')+' · '+baseTitle;
+  }
 }
 function setTimerDoc(patch){
   if(!state.store) return Promise.reject(new Error('not connected'));
@@ -89,9 +96,9 @@ function renderEntries(){
   if(!state.entries.length){ body.innerHTML=''; $('#entriesEmpty').hidden=false; return; }
   $('#entriesEmpty').hidden=true;
   body.innerHTML = state.entries.map(function(e){
-    return '<tr><td>'+fmtDateShort(e.date)+'</td><td>'+esc(e.clientName)+'</td><td>'+esc(e.description||'—')+
+    return '<tr><td>'+fmtDateShort(e.date)+'</td><td>'+esc(e.clientName)+'</td><td>'+(e.description?esc(e.description):'<span style="color:var(--text-faint);">No description</span>')+
       (e.invoiced?' <span class="pill pill-success" style="margin-left:6px;">Invoiced</span>':'')+
-      '</td><td class="hours num">'+hoursFromSeconds(e.seconds).toFixed(2)+'</td>'+
+      '</td><td class="hours num">'+hoursFromSeconds(e.seconds).toFixed(2)+'h</td>'+
       '<td class="row-actions"><button class="btn btn-icon" title="Edit" data-edit-entry="'+esc(e.id)+'">✎</button>'+
       '<button class="btn btn-icon" title="Delete" data-del-entry="'+esc(e.id)+'">✕</button></td></tr>';
   }).join('');

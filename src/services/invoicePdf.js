@@ -1,7 +1,7 @@
 // Builds the invoice PDF from an invoice snapshot. No DOM, no store.
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable'; // patches jsPDF.prototype.autoTable
-import { fmtDateShort, monthLabel } from '../domain/dates.js';
+import { fmtDateShort, localDateStr, monthLabel } from '../domain/dates.js';
 import { formatRatePct } from '../domain/tax.js';
 
 export function buildPdfDoc(invoiceDoc){
@@ -9,12 +9,12 @@ export function buildPdfDoc(invoiceDoc){
   var pageWidth = doc.internal.pageSize.getWidth();
   var margin = 48;
 
-  doc.setFont('helvetica','bold'); doc.setFontSize(20);
+  doc.setFont('helvetica','bold'); doc.setFontSize(22);
   doc.text('INVOICE', margin, 64);
 
   doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(90);
   doc.text('Invoice #'+invoiceDoc.number, margin, 82);
-  doc.text('Date: '+new Date(invoiceDoc.generatedAt).toLocaleDateString(), margin, 96);
+  doc.text('Date: '+fmtDateShort(localDateStr(invoiceDoc.generatedAt)), margin, 96);
   doc.text('Period: '+monthLabel(invoiceDoc.month), margin, 110);
 
   doc.setTextColor(30); doc.setFont('helvetica','bold'); doc.setFontSize(11);

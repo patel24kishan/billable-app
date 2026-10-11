@@ -4,4 +4,4 @@
 export function round2(n) { return Math.round(n*100)/100; }
 
 /** Formats an amount with the given currency symbol ('$' when empty or missing). */
-export function money(n, currency) { var c=(currency||'$'); return c+round2(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+export function money(n, currency) { var c=(currency||'$'); return c+round2(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
