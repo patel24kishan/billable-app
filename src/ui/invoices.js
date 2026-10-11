@@ -139,7 +139,7 @@ function renderInvoices(){
   body.innerHTML = state.invoices.map(function(inv){
     var due = (inv.grandTotal!=null ? inv.grandTotal : inv.totalAmount);
     return '<tr><td class="num">#'+String(inv.number).padStart(4,'0')+'</td><td>'+esc(inv.clientName)+'</td><td>'+esc(monthLabel(inv.month))+'</td>'+
-      '<td class="hours num">'+inv.totalHours.toFixed(2)+'</td><td class="amount num">'+inv.currency+due.toFixed(2)+'</td>'+
+      '<td class="hours num">'+inv.totalHours.toFixed(2)+'</td><td class="amount num">'+money(due, inv.currency)+'</td>'+
       '<td><button class="btn btn-ghost btn-sm" data-redownload="'+esc(inv.id)+'">Re-download</button></td></tr>';
   }).join('');
 }

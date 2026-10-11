@@ -3,6 +3,7 @@ import { jsPDF } from 'jspdf';
 import 'jspdf-autotable'; // patches jsPDF.prototype.autoTable
 import { fmtDateShort, localDateStr, monthLabel } from '../domain/dates.js';
 import { formatRatePct } from '../domain/tax.js';
+import { money } from '../domain/money.js';
 
 export function buildPdfDoc(invoiceDoc){
   var doc = new jsPDF({ unit:'pt', format:'letter' });
@@ -39,7 +40,7 @@ export function buildPdfDoc(invoiceDoc){
   });
 
   var rows = invoiceDoc.lineItems.map(function(li){
-    return [fmtDateShort(li.date), (li.description||'—')+(li.type==='expense'?'  (expense)':''), li.type==='expense'?'—':li.hours.toFixed(2), invoiceDoc.currency+li.amount.toFixed(2)];
+    return [fmtDateShort(li.date), (li.description||'—')+(li.type==='expense'?'  (expense)':''), li.type==='expense'?'—':li.hours.toFixed(2), money(li.amount, invoiceDoc.currency)];
   });
   var grandTotalDisplay = (invoiceDoc.grandTotal!=null ? invoiceDoc.grandTotal : invoiceDoc.totalAmount);
   // B5: each foot label spans the first three columns (right-aligned), so tax labels such as
@@ -47,11 +48,11 @@ export function buildPdfDoc(invoiceDoc){
   function footRow(label, amount){
     return [{content:label, colSpan:3, styles:{halign:'right'}}, {content:amount, styles:{halign:'right'}}];
   }
-  var footRows=[footRow('Subtotal', invoiceDoc.currency+invoiceDoc.totalAmount.toFixed(2))];
+  var footRows=[footRow('Subtotal', money(invoiceDoc.totalAmount, invoiceDoc.currency))];
   (invoiceDoc.taxLines||[]).forEach(function(t){
-    footRows.push(footRow(t.label+' ('+formatRatePct(t.rate)+'%)', invoiceDoc.currency+t.amount.toFixed(2)));
+    footRows.push(footRow(t.label+' ('+formatRatePct(t.rate)+'%)', money(t.amount, invoiceDoc.currency)));
   });
-  footRows.push(footRow('Total due', invoiceDoc.currency+grandTotalDisplay.toFixed(2)));
+  footRows.push(footRow('Total due', money(grandTotalDisplay, invoiceDoc.currency)));
   doc.autoTable({
     startY: Math.max(y2,billY+40)+16,
     margin:{left:margin,right:margin},
@@ -82,7 +83,7 @@ export function buildPdfDoc(invoiceDoc){
     doc.addPage();
     finalY = margin;
   }
-  doc.text('Rate: '+invoiceDoc.currency+invoiceDoc.rate.toFixed(2)+' / hour  ·  Total hours: '+invoiceDoc.totalHours.toFixed(2), margin, finalY);
+  doc.text('Rate: '+money(invoiceDoc.rate, invoiceDoc.currency)+' / hour  ·  Total hours: '+invoiceDoc.totalHours.toFixed(2), margin, finalY);
   var ny = finalY + 20;
   notesLines.forEach(function(line){
     if(ny > pageBottom){ doc.addPage(); ny = margin; }
