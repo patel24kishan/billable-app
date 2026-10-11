@@ -1,6 +1,6 @@
 # Plan: bring android-version fixes and behavior into the web app (branch desktop-version)
 
-Status: PLAN ONLY. No code has been changed. Implementation starts after approval.
+Status: IMPLEMENTED on branch desktop-version (steps 0-12, one commit per step, nothing pushed). Where this plan and the code differ, see "Implementation notes" at the end.
 
 ## Background
 - The web app (master / desktop-version) already has every feature in the Android README: timer (start/pause/stop/save), expenses with receipts, regional tax, PDF invoices with receipt pages, invoice snapshots and re-download.
@@ -131,3 +131,9 @@ Verify: scratchpad `pdftest.mjs` / `pdftest2.mjs` adapted to the new options, th
 
 ## Overall order
 Phase 0 (restructure), then C1, A1, C7, B1, B2, C2+M1, B3, D1+D2, Phase 3, Phase 4, Phase 5 (if approved).
+
+## Implementation notes (added after implementation)
+- D2 tick rule (your decision, step 9b): an expense's "Attach receipt" tick is kept by expense id in every case, including after the receipt is replaced; it defaults to ticked only when there is no previous tick (new row, or a receipt added to an expense that had none). This supersedes the earlier wording "kept for unchanged rows".
+- Added beyond this plan: M2 "Clear selected file" control in the expense edit window; preview cleared when the previewed client is deleted; PDF totals amounts right-aligned; notes block starts under the table if it cannot fit even on a fresh page; toast text "Enter a valid date." for C6.
+- Known limits: B2 if recording fails partway the preview stays and a second click could duplicate; C2 records missing an orderBy field sort first (a cloud store must backfill createdAt); after renaming a client the preview keeps the old name until Preview is clicked again.
+- Open follow-ups: money format in the PDF and invoice history still uses toFixed(2) (no thousands separator) while on-screen money() uses en-US grouping; sync-readiness items not built yet (schemaVersion stamping, getCurrentUser stub, soft deletes, export/import, cloud/sync store).
