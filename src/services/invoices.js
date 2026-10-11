@@ -1,0 +1,74 @@
+// Invoice workflow logic: preview rows, the invoice snapshot, the PDF filename,
+// and recording a generated invoice. No DOM; only recordInvoice touches the store.
+import { hoursFromSeconds } from '../domain/dates.js';
+import { getEffectiveTaxLines } from '../domain/tax.js';
+import { hasReceipt, getReceipt } from '../lib/receipts.js';
+import { COLLECTIONS, DOCS } from '../lib/schema.js';
+
+/**
+ * entryDatas / expenseDatas: arrays of {id, ...data}. Returns the preview rows
+ * ({type, id, ...data}), un-invoiced only unless includeBilled, sorted by date.
+ */
+export function buildPreviewRows(entryDatas, expenseDatas, includeBilled){
+  var timeRows=entryDatas.map(function(d){ return Object.assign({type:'time', id:d.id}, d); }).filter(function(r){ return includeBilled || !r.invoiced; });
+  var expenseRows=expenseDatas.map(function(d){ return Object.assign({type:'expense', id:d.id}, d); }).filter(function(r){ return includeBilled || !r.invoiced; });
+  var rows=timeRows.concat(expenseRows);
+  rows.sort(function(a,b){ return a.date<b.date?-1:a.date>b.date?1:(a.type<b.type?1:-1); });
+  return rows;
+}
+
+/**
+ * The invoice snapshot that is rendered to PDF and stored in history.
+ * meta: { client, month }. Returns { invoiceDoc, timeRows, expenseRows }.
+ */
+export function buildInvoiceDoc({ rows, meta, settings, generatedAt }){
+  var client=meta.client;
+  var timeRows=rows.filter(function(r){return r.type==='time';});
+  var expenseRows=rows.filter(function(r){return r.type==='expense';});
+  var totalSeconds=timeRows.reduce(function(a,r){return a+r.seconds;},0);
+  var totalHours=hoursFromSeconds(totalSeconds);
+  var timeAmount=Math.round(totalHours*(settings.rate||0)*100)/100;
+  var expenseAmount=Math.round(expenseRows.reduce(function(a,r){return a+r.amount;},0)*100)/100;
+  var invoiceNumber=settings.nextInvoiceNumber||1;
+  var subtotal=Math.round((timeAmount+expenseAmount)*100)/100;
+  var taxLines=getEffectiveTaxLines(settings).map(function(t){ return { label:t.label, rate:t.rate, amount:Math.round(subtotal*t.rate*100)/100 }; });
+  var taxTotal=Math.round(taxLines.reduce(function(a,t){return a+t.amount;},0)*100)/100;
+  var grandTotal=Math.round((subtotal+taxTotal)*100)/100;
+  var receipts=expenseRows.filter(function(r){return hasReceipt(r);}).map(function(r){
+    var rc=getReceipt(r);
+    return { title:r.title, dataUrl:rc.dataUrl, type:rc.type||'image/jpeg', width:rc.width||800, height:rc.height||600 };
+  });
+  var invoiceDoc={
+    number: invoiceNumber, month: meta.month, generatedAt:generatedAt,
+    from:{ name:settings.businessName, email:settings.businessEmail, address:settings.businessAddress },
+    to:{ name: client?client.name:'Client', email: client?client.email:'', address: client?client.address:'' },
+    currency: settings.currency||'$', rate: settings.rate||0,
+    totalHours: totalHours, totalAmount: subtotal,
+    taxLines: taxLines, taxTotal: taxTotal, grandTotal: grandTotal,
+    notes: settings.notes||'',
+    lineItems: rows.map(function(r){
+      if(r.type==='expense') return { type:'expense', date:r.date, description:r.title, amount:r.amount };
+      var h=hoursFromSeconds(r.seconds);
+      return { type:'time', date:r.date, description:r.description||'', hours:h, amount:Math.round(h*(settings.rate||0)*100)/100 };
+    }),
+    receipts: receipts
+  };
+  return { invoiceDoc:invoiceDoc, timeRows:timeRows, expenseRows:expenseRows };
+}
+
+/** 'Invoice-0007-Acme-Co-2026-10.pdf'. Callers sanitize nameSegment. */
+export function invoicePdfFilename(number, nameSegment, month){
+  return 'Invoice-'+String(number).padStart(4,'0')+'-'+nameSegment+'-'+month+'.pdf';
+}
+
+/** Saves the invoice, marks its entries/expenses invoiced, then bumps nextInvoiceNumber. */
+export function recordInvoice(store, { invoiceDoc, entryIds, expenseIds, clientId, clientName }){
+  var invoiceRecord=Object.assign({}, invoiceDoc, { entryIds:entryIds, expenseIds:expenseIds, clientId:clientId, clientName:clientName });
+  return store.collection(COLLECTIONS.invoices).add(invoiceRecord).then(function(ref){
+    var updates=entryIds.map(function(id){ return store.collection(COLLECTIONS.entries).doc(id).update({invoiced:true, invoiceId:ref.id}); })
+      .concat(expenseIds.map(function(id){ return store.collection(COLLECTIONS.expenses).doc(id).update({invoiced:true, invoiceId:ref.id}); }));
+    return Promise.all(updates);
+  }).then(function(){
+    return store.doc(DOCS.settings).update({ nextInvoiceNumber: invoiceDoc.number+1 });
+  });
+}

@@ -3,6 +3,11 @@
 // onSnapshot, get/set/update/delete). The app's own logic (src/main.js) was
 // originally written against that shape, so this module is a drop-in local
 // replacement that persists real data in the browser — no server, no account.
+//
+// Every write is stamped with `updatedAt` (ISO UTC) on the stored copy, never
+// on the caller's object; `add` also fills `createdAt` when the caller did not.
+
+import { stampAdd, stampWrite } from '../schema.js';
 
 const DB_NAME = 'billable';
 const DB_VERSION = 1;
@@ -76,8 +81,12 @@ function applyOrder(docs, order) {
   });
 }
 
-/** Resolves once the store's persisted contents are loaded and ready to use. */
-export async function createLocalDb() {
+/**
+ * Resolves once the store's persisted contents are loaded and ready to use.
+ * options.now: () => ISO string, the clock used for createdAt/updatedAt stamps.
+ */
+export async function createLocalStore(options = {}) {
+  const now = options.now || (() => new Date().toISOString());
   const idb = await openIdb();
   const records = await idbGetAll(idb);
 
@@ -105,19 +114,22 @@ export async function createLocalDb() {
 
   function docRef(path, id) {
     store[path] = store[path] || {};
+    function del() {
+      delete store[path][id];
+      return removePersisted(path, id).then(() => notify(path));
+    }
     return {
       set(data) {
-        store[path][id] = Object.assign({}, data);
+        store[path][id] = stampWrite(data, now());
         return persist(path, id, store[path][id]).then(() => notify(path));
       },
       update(patch) {
-        store[path][id] = Object.assign({}, store[path][id] || {}, patch);
+        store[path][id] = Object.assign({}, store[path][id] || {}, patch, { updatedAt: now() });
         return persist(path, id, store[path][id]).then(() => notify(path));
       },
-      delete() {
-        delete store[path][id];
-        return removePersisted(path, id).then(() => notify(path));
-      },
+      delete: del,
+      // Alias of delete(); call sites use remove() so a later soft delete stays inside the data layer.
+      remove: del,
       get() {
         return Promise.resolve({ exists: !!store[path][id], data: () => store[path][id] });
       },
@@ -174,7 +186,7 @@ export async function createLocalDb() {
     return {
       add(data) {
         const id = uid();
-        store[path][id] = Object.assign({}, data);
+        store[path][id] = stampAdd(data, now());
         return persist(path, id, store[path][id]).then(() => {
           notify(path);
           return { id };
