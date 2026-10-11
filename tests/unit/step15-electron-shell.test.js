@@ -70,6 +70,20 @@ describe('step 15: Electron shell wiring', () => {
     expect(pkg.scripts.test).toBe('vitest run');
   });
 
+  it('step 17: declares a supported Electron major (>= 42) and the lockfile resolves to that major', () => {
+    // Electron supports only its newest three majors; 42 was the oldest supported line
+    // when Electron was upgraded to 44 (step 17). A downgrade below 42 must fail here.
+    const range = pkg.devDependencies.electron;
+    const m = /^\^?(\d+)\.\d+\.\d+$/.exec(range);
+    expect(m, 'electron range ' + range).not.toBeNull();
+    const major = Number(m[1]);
+    expect(major).toBeGreaterThanOrEqual(42);
+    const lock = JSON.parse(read('package-lock.json'));
+    const locked = lock.packages['node_modules/electron'].version;
+    expect(Number(locked.split('.')[0])).toBe(major);
+    expect(Number(locked.split('.')[0])).toBeGreaterThanOrEqual(42);
+  });
+
   it('.gitignore ignores release/', () => {
     expect(read('.gitignore').split(/\r?\n/)).toContain('release/');
   });

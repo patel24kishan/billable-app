@@ -64,7 +64,7 @@ src/lib/downloads.js    — browser file-download helper
 
 ## Desktop app (Windows)
 
-The same app also ships as a Windows desktop app (Electron). It runs fully offline, keeps its data on your computer, and has no account, no sync and no auto-update.
+The same app also ships as a Windows desktop app (Electron 44, Windows x64). It runs fully offline, keeps its data on your computer, and has no account, no sync and no auto-update.
 
 ### Run it in development
 
@@ -83,7 +83,7 @@ npm run dist             # vite build + electron-builder (NSIS, Windows x64)
 
 Output in `release/`:
 
-- `Billable-Setup-1.0.0.exe` — the installer (about 90 MB). This is the file to give to users.
+- `Billable-Setup-1.0.0.exe` — the installer (about 120 MB). This is the file to give to users.
 - `win-unpacked/Billable.exe` — the unpacked app, for testing without installing.
 - `Billable-Setup-1.0.0.exe.blockmap`, `builder-debug.yml` — build by-products; not needed for installing.
 
@@ -117,7 +117,7 @@ The smoke run uses a fresh temporary user-data folder (the app refuses any folde
 
 - **Placeholder icon:** `build/icon.png` (a blue tile with a white "B") is a placeholder made by `npm run icon` (`scripts/make-icon.mjs`, no dependencies). Replace it with a real logo (PNG, at least 512x512) before a public release; electron-builder converts it to the Windows `.ico`. Re-running the generator overwrites a replaced icon.
 - **No auto-update:** publishing is disabled (`"publish": null`); to update, build a newer installer and run it over the old install (your data is kept).
-- **Node 24 and the `electron` package:** on Node 24 the `electron` package's install step can finish without unpacking the runtime (`extract-zip` fails silently), and then `npm run electron:dev` / `npm run smoke` fail with "Electron failed to install correctly". Workaround: take the zip the install downloaded into `%LOCALAPPDATA%\electron\Cache`, check its SHA-256 against `node_modules/electron/checksums.json`, extract it into `node_modules/electron/dist`, and make sure `node_modules/electron/path.txt` contains `electron.exe`. `npm run dist` is not affected: electron-builder downloads and unpacks its own copy of Electron.
+- **Electron runtime download:** since Electron 42 the `electron` npm package no longer downloads its runtime during `npm install`; it downloads it (into `%LOCALAPPDATA%\electron\Cache`, verified against `node_modules/electron/checksums.json`) the first time `electron .` / `npm run smoke` runs, so that first run needs network access. To fetch it ahead of time run `npx install-electron --no`. If a run ever fails with "Electron failed to install correctly", delete `node_modules/electron` and run `npm install` and `npx install-electron --no` again. (The Node 24 `extract-zip` problem seen with Electron 38 did not recur with Electron 44, which uses a different extractor.) `npm run dist` is not affected: electron-builder downloads and unpacks its own copy of Electron.
 
 ## License
 
