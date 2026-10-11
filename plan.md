@@ -174,3 +174,30 @@ Files: `electron/main.js`, `electron/preload.cjs` (preload must be CommonJS for 
 
 ## Execution notes for Phase 6
 Roles and gate are unchanged (architect Opus reviews and commits; implementers Sonnet, Opus for steps 15-16). The final gate adds: `npm test` 10x, `npm run build`, `npm run smoke`, `npm run dist`, and a list of produced artifacts with sizes. Commit messages "Step N (...)" with the Co-Authored-By line. No push.
+
+## Step 13b: UI requests from the user (executed right after Step 13, before Step 14)
+Requested by the user while reviewing the app. Four parts, each with its own tests; implement as ONE step but verify each part (the architect reviews all four together).
+
+13b-1. Edit button on EVERY invoice preview line (reverses the earlier "time rows are out of scope" decision of D2).
+- Add a dedicated narrow actions column at the right of the invoice preview table (after Amount) holding the Edit (pencil) button for every row, so the buttons line up in one column. Time rows open the existing edit-entry modal (`openEditEntry(id)` in src/ui/dialogs.js; like `openEditExpense` it must fall back to a direct store read when the entry is not in `state.entries`' 200-row window); expense rows keep opening the edit-expense modal. The expense row's old inline pencil in the description cell moves to the new column (the D1 "Attach receipt" checkbox stays in the description cell).
+- After a successful entry save the preview reloads exactly like the expense path (`loadInvoicePreview({keepAttach:true})` via a new `onEntrySaved(cb)` hook in dialogs.js registered by invoices.bind; dialogs must not import ui/invoices). If the edited entry leaves the invoice period (date moved out of the month) the row disappears and a neutral toast says "Entry moved out of this invoice period." Edits made while no preview is showing must not touch or throw.
+- Keep B1 totals, B2/B3 clearing, C2/M1 ordering, D1 tick behavior, C6 empty-date check unchanged.
+- Accessible labels: aria-label "Edit time entry <date>" / "Edit expense <title>".
+
+13b-2. Column alignment in the invoice preview table.
+- The numeric columns (Hours, Amount) have right-aligned values but left-aligned headers, so headers and numbers do not line up, and the footer's "32.00 hrs" overflows the Hours column. Right-align the `Hours` and `Amount` headers with their values (use the existing numeric cell class), make the footer Subtotal hours cell fit inside the Hours column without clipping or overflow (e.g. widen the column or use a compact "32.00 h" only if it cannot fit; prefer keeping "hrs"), keep the footer rows' amounts aligned in the Amount column, and add an empty header cell for the new actions column. Same treatment for any other table in the app whose numeric headers are misaligned with their values (check the Recent entries, Recent expenses and Invoice history tables; fix only misalignment, no other restyling). Verify visually in the browser pane at desktop and at narrow width.
+
+13b-3. Track Time layout: move the "Log time by hand" card above the "Log an expense" card. If each form has its own "Recent" list below it, the list moves with its form, so the order becomes: timer, log time by hand, recent entries, log an expense, recent expenses (inspect index.html first and keep each form with its own list; if the lists are in one shared card, move only the two form cards). Markup move only, no id changes, tab order and labels unchanged.
+
+13b-4. Month filter for Recent entries.
+- Above the Recent entries table add a month picker (`input type="month"`, labelled "Month") and an "All months" button. Default = all months, i.e. today's behavior (newest 200). When a month is chosen, the list shows only that month's entries (date >= first day and <= last day, using `monthRange`), still ordered newest first with the C2 ordering, and a muted summary shows "<Month Year> · <total hours>h" (sum of the filtered entries' hours, rounded like elsewhere). "All months" clears the filter and the summary.
+- The filter persists across add/edit/delete of entries and timer saves (the list subscription re-queries with the active filter); it is a view filter only: it does not affect the invoice preview, the timer or stored data. Use the store's `where` + chained `orderBy` (no new store features) so the future cloud store can implement the same query. The filter state lives in the track UI module (not in `state.js`); it resets on reload (no persistence needed).
+- Empty-month message: "No time logged in <Month Year>." (distinct from the existing empty state).
+- Expenses list: not changed (the user asked only for time entries); mention it in the final report as an offer.
+
+Tests for 13b (each must fail on the old code; prove with `git stash push -- src index.html` / `git stash pop`):
+- 13b-1 integration: Edit buttons on every row (time and expense) in one column; clicking a time row's edit opens the entry modal; changing hours/description updates the row, footer subtotal/tax/total and the stored entry; moving the date to another month removes the row and shows the toast; a tick unticked on an expense survives a time-entry edit; edit with no preview showing does nothing; store fallback for an entry outside the first 200.
+- 13b-2: a unit/jsdom test that header and body cells of numeric columns share the same alignment class/style (assert computed or class equality), the footer hours cell contains the full "<n> hrs" text, the actions header exists; plus a visual check in the browser pane (report what you saw).
+- 13b-3: a jsdom test of document order of the two form cards (and lists) in `index.html`; ids unchanged.
+- 13b-4 integration: entries across several months, filter October -> only October rows + total hours, filter another month, empty month message, "All months" restores, adding an entry in another month while filtered does not show it but adding one in the filtered month does, editing keeps the filter, the invoice preview is unaffected by the filter.
+- Every async test waits for settle points; full suite 10 runs with 0 unhandled errors; `npm run build` green.
