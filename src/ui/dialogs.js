@@ -7,6 +7,7 @@ import { fileToCompressedDataUrl, hasReceipt, getReceipt, receiptFields, cleared
 import { hoursFromSeconds } from '../domain/dates.js';
 
 var editExpenseReceiptRemoved=false;
+var editExpenseHadReceipt=false;
 
 export function confirmDialog(text){
   return new Promise(function(resolve){
@@ -38,7 +39,9 @@ export function openEditExpense(id){
   $('#editExpenseId').value=id; $('#editExpenseDate').value=x.date; $('#editExpenseAmount').value=x.amount; $('#editExpenseTitle').value=x.title;
   $('#editExpenseReceiptFile').value='';
   editExpenseReceiptRemoved=false;
-  if(hasReceipt(x)){ $('#editExpenseReceiptThumb').src=getReceipt(x).dataUrl; $('#editExpenseReceiptCurrent').hidden=false; }
+  editExpenseHadReceipt=hasReceipt(x);
+  $('#editExpenseReceiptThumb').hidden=false; $('#editExpenseReceiptRemoveBtn').textContent='Remove receipt';
+  if(editExpenseHadReceipt){ $('#editExpenseReceiptThumb').src=getReceipt(x).dataUrl; $('#editExpenseReceiptCurrent').hidden=false; }
   else { $('#editExpenseReceiptCurrent').hidden=true; $('#editExpenseReceiptThumb').src=''; }
   $('#editExpenseModal').hidden=false;
 }
@@ -56,8 +59,18 @@ export function bind(){
   $('#receiptViewCloseBtn').addEventListener('click', function(){ $('#receiptViewModal').hidden=true; $('#receiptViewImg').src=''; });
 
   $('#editExpenseCancelBtn').addEventListener('click', function(){ $('#editExpenseModal').hidden=true; });
+  // With no stored receipt the Remove control is hidden; picking a file reveals it as
+  // "Clear selected file" (thumb hidden) so the pick can be undone.
+  $('#editExpenseReceiptFile').addEventListener('change', function(){
+    if(editExpenseHadReceipt) return;
+    var picked=!!$('#editExpenseReceiptFile').files[0];
+    $('#editExpenseReceiptCurrent').hidden=!picked;
+    $('#editExpenseReceiptThumb').hidden=true;
+    $('#editExpenseReceiptRemoveBtn').textContent='Clear selected file';
+  });
   $('#editExpenseReceiptRemoveBtn').addEventListener('click', function(){
-    editExpenseReceiptRemoved=true;
+    $('#editExpenseReceiptFile').value=''; // discard any newly picked file
+    if(editExpenseHadReceipt) editExpenseReceiptRemoved=true;
     $('#editExpenseReceiptCurrent').hidden=true; $('#editExpenseReceiptThumb').src='';
   });
   $('#editExpenseSaveBtn').addEventListener('click', async function(){
